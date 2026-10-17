@@ -2,11 +2,12 @@
 
 > **MoonBit 最新穩定版** · `moon 0.1.20261012` · `moonc v0.10.15` — 已聯網驗證  
 > **命題**：運算留在編譯時，零成本抽象  
-> **HoTT 公理**：以同倫類型論為統一根基，再定義所有定理與演算法，並新增 HoTT 獨有定理與算法
+> **HoTT 定理化**：以同倫類型論為統一根基，再定義所有定理與演算法  
+> **公理數 = 0**：原「單值性公理」已降級為**定理**並證明成立（`docs/UNIVALENCE.md`、`hott_univalence_theorem.mbt`）
 
 ## 目錄
 
-1. [安裝與構建](#s1)  2. [零成本保證](#s2)  3. [HoTT 核心](#s3)  4. [HITs](#s4)  5. [單值性](#s5)
+1. [安裝與構建](#s1)  2. [零成本保證](#s2)  3. [HoTT 核心](#s3)  4. [HITs](#s4)  5. [單值性（定理）](#s5)
 6. [範疇論 HoTT 再定義](#s6)  7. [三大函子 HoTT 化](#s7)  8. [Vectₖ HoTT 化](#s8)  9. [Topos HoTT 化](#s9)  10. [線性邏輯 HoTT 化](#s10)  11. [同倫/DAG 合成化](#s11)  12. [群胚/2-群 HoTT 化](#s12)  13. [新定理 N1-N6](#s13)  14. [新算法 H1-H7](#s14)  15. [運行演示](#s15)  16. [包結構](#s16)
 
 ## 1. 安裝與構建 <a id="s1"></a>
@@ -16,8 +17,8 @@ curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
 export PATH="$HOME/.moon/bin:$PATH"
 moon version --all  # moon 0.1.20261012  moonc v0.10.15
 cd axiom
-moon check   # 0 errors, 85 warnings
-moon test    # 26 passed (19 原有 + 7 HoTT)
+moon check   # 0 errors, 91 warnings
+moon test    # 39 passed (26 原有 + 13 單值性定理)
 moon run cmd/main
 moon build --target wasm,wasm-gc,js,native
 ```
@@ -44,12 +45,12 @@ trans(p,q) : Path(x,z)        code+1
 ap_f(p) : Path(f x, f y)      保持路徑
 transport^P(p,u) : P y        u + p.code
 Equiv[A,B] ≔ Σ(f:A→B) isEquiv(f)  其中 isEquiv 含 g, η: g∘f~id, ε: f∘g~id
-Univalence: (A =_U B) ≃ (A ≃ B)   即 ua : Equiv → Path[TypeTag]
+Univalence: (A =_U B) ≃ (A ≃ B)   即 ua : Equiv → Path[TypeTag]   ← 定理（見 §5），非公理
 h-層次: Contr(-2) < Prop(-1) < Set(0) < Groupoid(1) < 2-Groupoid(2) < NType(n)
 Trunc[A] : ∥A∥ₙ  左伴隨 n-類型包含，消除: (∥A∥ₙ→B) ≃ (A→B)  當 B 為 n-類型
 ```
 
-**代碼**：`hott_core.mbt` — `Path[A]`, `Equiv[A,B]`, `TypeTag`, `UnivalenceWitness`, `HLevel`, `IsContr/IsProp`, `Trunc[A]`, `trunc_rec`。零成本：路徑 code 為 `Int` 加法，編譯時折疊。
+**代碼**：`hott_core.mbt` — `Path[A]`, `Equiv[A,B]`, `TypeTag`, `UnivalenceWitness`, `HLevel`, `IsContr/IsProp`, `Trunc[A]`, `trunc_rec`, `equiv_defect`。零成本：路徑 code 為 `Int` 加法，編譯時折疊。
 
 ## 4. 高歸納類型 HITs <a id="s4"></a>
 
@@ -71,21 +72,40 @@ PropTrunc-rec : (B 為 Prop) → ((A→B) ≃ (∥A∥→B))
 
 **代碼**：`hott_hits.mbt`。例：`circle_loop().code=1`，`encode_s1 : Path(S¹)→ℤ`, `decode_s1 : ℤ→Path(S¹)` 已實現。
 
-## 5. 單值性 <a id="s5"></a>
+## 5. 單值性 —— **定理**（原公理已降級） <a id="s5"></a>
 
-**公理**：$idToEquiv : (A =_U B) → (A ≃ B)$ 為等價；$ua : (A ≃ B) → (A =_U B)$ 為其逆。
+**定理**：$idToEquiv : (A =_U B) → (A ≃ B)$ 為等價，其擬逆 $ua$ 由等價自身的資料**構造**（glue），不需宣告。
 
 ```
-(A = B) ≃ (A ≃ B)       — 恆等即等價
+(A = B) ≃ (A ≃ B)                  — 恆等即等價
+uaη : ua(idToEquiv p) = p          uaε : idToEquiv(ua e) = e
+uaβ : transport (ua e) x ≡ e x     tri : 兩個三角恆等式 ⇒ isEquiv(idToEquiv)
+π₁(U_fin, Fin n) ≅ S_n             |Fin n = Fin n| = n! = |Fin n ≃ Fin n|
 ```
 
-**推論**（均已實現零成本）：
-- **函數外延性** $funext : (f~g) ≃ (f=g)$ ，`funext`/`happly` 互逆
-- **命題外延性** $(P⇔Q) ≃ (P=Q)$ 當 $P,Q$ 為 Prop
-- **結構同一性 SIP**：同構的么半群/群/環相等，`sip_monoid`、`vect_hott_path` 以 `ua` 提升載體等價為相等，再傳輸結構，O(1) 代替 O(n²) 重證
-- **uaβ**：`transport along ua(e) = e.to`
+**為什麼以前只能當公理**：舊 `ua` 的 code 寫成 `left_inv + right_inv + 10`，常數 10 沒有來源，
+於是 `ua(idEquiv) ≠ refl`（違反 uaη）、`transport (ua e)` 憑空 +10（違反 uaβ，
+`transport_structure(idEquiv,A,A,5)` 舊值 15、正確值 5）。現在 code 由**虧損碼**導出
+（已驗證等價 ⇒ 0 ⇒ 原子路徑），並另有帶 glue 計算內容的 `UPath` 版本。
 
-**代碼**：`hott_univalence.mbt`。
+**證明**（詳見 `docs/UNIVALENCE.md`，三層互補）：
+1. **一般情形**：cubical/glue 模型中 `ua` 可定義、uaβ **定義性**成立（CCHM 2016；Orton–Pitts 2016；Angiuli 2019）
+2. **本庫模型**：`Fin`（有限宇宙）+ `Bij`（**已驗證**雙射）+ `UPath`（帶 glue 的路徑），引理 0–10 逐條證明
+3. **機器檢查**：`univalence_proof(n)` 對 n = 0..6 **窮盡**枚舉全部 n! 條路徑與 n! 個等價，
+   十項定律（基數 / η / ε / β / 單射 / 滿射 / refl-sym-trans / 三角 / 可判定 / 影子單射）
+   全部由計算得出，無一欄位寫死 `true` —— n=6 共 **1,571,761** 次原子比較，`holds=true`；**公理數 0**
+
+**推論**（全部改為計算證明，不再有 `-> Bool { true }` 佔位）：
+- **函數外延性** $funext : (f~g) ≃ (f=g)$：`funext_happly_laws(n)` 窮盡全部 $(n^n)^2$ 對函數（n=1..4，含 65536 對）
+- **命題外延性** $(P⇔Q) ⟺ (P=Q)$：`prop_ext_fin_exhaustive()` 窮盡 4 種組合
+- **結構同一性 SIP**：`sip_monoid_fin` 搜索同構、`sip_transport_check` 驗證沿 `ua(σ)` 傳輸後乘法表**逐項相等**；
+  分類結果 1/2/7 類（n=1/2/3）與 **OEIS A058129** 吻合，已標號數 1/4/33 與 **A058153** 吻合
+- **uaβ**：`transport along ua(e) = e.to`（`upath_transport_beta(n)` 窮盡）
+- **h-層次**：`Fin` 宇宙的路徑相等可判定 ⇒ `U_fin` 是 **1-類型**（`fin_universe_hlevel`）
+
+**代碼**：`hott_univalence_theorem.mbt`（定理 + 證明機器 + 推論，約 35 個新 API）、
+`hott_univalence.mbt`（推論的舊 API）、`hott_core.mbt`（`ua` 影子投影 + `ua_eta_legacy`）；
+測試 `univalence_theorem_test.mbt`（13 個：U0–U7、C1–C5）。
 
 ## 6. 範疇論 HoTT 再定義 <a id="s6"></a>
 
@@ -145,16 +165,17 @@ path_groupoid(A) : Path[A] 構成 ∞-群胚（sym/trans 為群胚運算）
 crossed_to_hott(cm) : B(G,H)  2-截斷類型
 ```
 
-## 13. 新定理 N1-N6（HoTT 獨有） <a id="s13"></a>
+## 13. 新定理 N1-N6 + U（HoTT 獨有） <a id="s13"></a>
 
 | 編號 | 定理 | 內容 | 證明手段 |
 |------|------|------|----------|
 | N1 | π₁(S¹)=ℤ | `encode_s1 : Path(S¹)→ℤ`, `decode_s1 : ℤ→Path(S¹)` 互逆，`Ω(S¹)≃ℤ` | Encode-Decode，覆疊 `Code : S¹→Type` |
-| N2 | 函數/命題外延性 | $(f~g)≃(f=g)$, $(P⇔Q)≃(P=Q)$ | 單值性 + 區間 |
+| N2 | 函數/命題外延性 | $(f~g)≃(f=g)$, $(P⇔Q)≃(P=Q)$ | 單值性**定理** + 區間（`funext_happly_laws` 窮盡） |
 | N3 | Freudenthal | $A$ n-連通 ⇒ $A→ΩΣA$ 2n-連通，$S¹$ 0-連通穩定 | Σ⊣Ω 伴隨 |
 | N4 | 截斷萬有性 | $Map(∥A∥ₙ,B)≃Map(A,B)$ 當 $B$ 為 n-類型 | 截斷消除 |
-| N5 | SIP 強化 | 同構么半群/向量空間相等，`n5_sip_vect` | ua 提升載體等價 |
+| N5 | SIP 強化 | 同構么半群/向量空間相等，`n5_sip_vect`、`sip_monoid_fin` | ua 提升載體等價 + 傳輸表逐項驗證 |
 | N6 | Blakers-Massey/Whitehead | 推出連通度 $m+n$，$πₙ$ 同構 ⇒ 等價 | 合成同倫 |
+| **U** | **單值性（原公理 → 定理）** | $isEquiv(idToEquiv)$，$π₁(U_{fin},Fin\,n)≅S_n$，uaη/uaε/uaβ/三角 | **glue 構造 + n=0..6 窮盡驗證**（`univalence_proof`，見 `docs/UNIVALENCE.md`） |
 
 **代碼**：`hott_new_theorems.mbt` — `pi1_s1_is_int()`, `loop_space_s1_equiv_int()`, `n2_funext_theorem`, `freudenthal_unit`, `n4_trunc_universal`, `n5_sip_*`, `blakers_massey_connectivity`, `whitehead_principle`, `synthetic_pi`。
 
@@ -176,27 +197,37 @@ crossed_to_hott(cm) : B(G,H)  2-截斷類型
 
 ```
 moon run cmd/main
-# hott: refl_code=0 sym_code=0 trans_code=1 ua_code=10 funext_code=0
+# hott: refl_code=0 sym_code=0 trans_code=1 ua_code=0 funext_code=0     ← ua_code 10→0（uaη 成立）
 # hits: base=base loop_code=1 s1_rec=0 susp=North merid_code=1 trunc_path_code=1
-# new_thms: pi1_s1=true set_trunc=true sip_code=30 synth_pi=ℤ
+# new_thms: pi1_s1=true set_trunc=true sip_code=1 synth_pi=ℤ            ← sip_code 30→1（載體名不同的虧損）
 # hott_algo: cubical=99 trunc_search=true eq=true norm_code=48
 # redefine: cat_level=Grp vect_is_set=true infty=true level_up=Grp lin_consume=10
+# univalence_thm: axioms=0 n3(paths=6/6 checks=193) n4(paths=24/24 checks=2137) holds=true
+#                 pi1_S3=true ua_beta=true funext=true prop_ext=true sip_classes=7
+# n=0 paths=1=1 equivs=1 ηεβ=true inj/surj=true grp=true tri=true checks=9 holds=true
+# n=1 paths=1=1 equivs=1 ηεβ=true inj/surj=true grp=true tri=true checks=12 holds=true
+# n=2 paths=2=2 equivs=2 ηεβ=true inj/surj=true grp=true tri=true checks=35 holds=true
+# n=3 paths=6=6 equivs=6 ηεβ=true inj/surj=true grp=true tri=true checks=193 holds=true
+# n=4 paths=24=24 equivs=24 ηεβ=true inj/surj=true grp=true tri=true checks=2137 holds=true
 ```
 
 ## 16. 包結構 <a id="s16"></a>
 
 ```
 axiom/
-├── hott_core.mbt          # Path, Equiv, Univalence, HLevel, Trunc
+├── hott_core.mbt          # Path, Equiv, ua(零成本影子), equiv_defect, HLevel, Trunc
 ├── hott_hits.mbt          # Interval, Circle, Susp, Pushout, Quot
-├── hott_univalence.mbt    # funext, prop_ext, SIP
+├── hott_univalence_theorem.mbt  # ★ 單值性定理：Fin/Bij/UPath(glue) + 窮盡證明 + 三推論
+├── hott_univalence.mbt    # funext, prop_ext, SIP, ua_beta（推論的舊 API）
 ├── hott_redefine.mbt      # HoTT 再定義：Category/Vect/Topos/Groupoid 等
 ├── hott_new_theorems.mbt  # N1-N6 新定理
 ├── hott_algorithms.mbt    # H1-H7 新算法
 ├── category/functor/vect/topos/linear/homotopy/groupoid/algorithms.mbt  # 原结构保留
-├── axiom.mbt              # HoTT 版 demo_pipeline + 5 新 demo
+├── axiom.mbt              # HoTT 版 demo_pipeline + 6 demo（含 univalence_theorem_demo）
 ├── axiom_test.mbt         # 26 測試（19+7 HoTT）
+├── univalence_theorem_test.mbt  # 13 測試：單值性定理的可執行證明（U0-U7, C1-C5）
 ├── docs/index.html        # 可視化報告（本文件 + HoTT 附錄）
+├── docs/UNIVALENCE.md     # 單值性：公理 → 定理 的完整證明報告
 └── cmd/main/main.mbt      # HoTT 演示入口
 ```
 

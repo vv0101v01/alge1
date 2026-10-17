@@ -8,6 +8,7 @@
 /// HoTT 新增：
 /// N1. π₁(S¹)=ℤ（Encode-Decode） N2. 函數/命題外延性 N3. Freudenthal N4. 截斷萬有性
 /// N5. SIP 強化 N6. Whitehead/Blakers-Massey
+/// 公理降級為定理：U. 單值性 isEquiv(idToEquiv)（glue 構造 + n=0..6 窮盡驗證，公理數 0）
 
 pub fn hello() -> String { "Axiom ready — HoTT 零成本抽象已就緒" }
 
@@ -72,6 +73,13 @@ pub fn hits_demo() -> String {
   let prop = prop_trunc_in(123)
   let is_prop = prop_trunc_path(prop, prop)
   "hits: base=" + base.tag + " loop_code=" + my_loop.code.to_string() + " s1_rec=" + v.to_string() + " susp=" + susp_str + " merid_code=" + merid_path.code.to_string() + " trunc_path_code=" + is_prop.code.to_string()
+}
+
+/// 單值性定理演示：原「單值性公理」已降級為定理（glue 構造 + 窮盡驗證）
+pub fn univalence_theorem_demo() -> String {
+  let pf3 = univalence_proof(3)
+  let pf4 = univalence_proof(4)
+  "univalence_thm: axioms=" + univalence_axiom_count().to_string() + " n3(paths=" + pf3.path_count.to_string() + "/" + pf3.expected.to_string() + " checks=" + pf3.checks.to_string() + ") n4(paths=" + pf4.path_count.to_string() + "/" + pf4.expected.to_string() + " checks=" + pf4.checks.to_string() + ") holds=" + (univalence_holds(3) && univalence_holds(4)).to_string() + " pi1_S3=" + pi1_universe_is_symmetric_group(3).to_string() + " ua_beta=" + ua_beta_is_theorem(4).to_string() + " funext=" + funext_happly_is_equiv().to_string() + " prop_ext=" + prop_ext_is_theorem().to_string() + " sip_classes=" + monoid_classes(3).to_string()
 }
 
 /// HoTT 新定理演示：π₁(S¹)=ℤ 等

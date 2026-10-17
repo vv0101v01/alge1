@@ -125,13 +125,29 @@ test "hott: path ops" {
   assert_eq(ap_p.code, 0)
 }
 
-test "hott: equiv and ua" {
+test "hott: equiv and ua (定理化：ua 不再是公理)" {
   let e = @axiom.Equiv::make(fn(x : Int) -> Int { x }, fn(x : Int) -> Int { x })
   assert_eq(e.is_equiv(), true)
   let tagA = @axiom.TypeTag("A")
   let tagB = @axiom.TypeTag("B")
   let pathAB = @axiom.ua(e, tagA, tagB)
-  assert_eq(pathAB.code, 10)
+  // 舊實作憑空加了常數 10（公理）；現在 code = 等價自身的虧損碼，已驗證等價 ⇒ 0（原子路徑）
+  assert_eq(pathAB.code, @axiom.equiv_defect(e))
+  assert_eq(pathAB.code, 0)
+  // uaη：ua(idToEquiv(refl A)) 結構上就是 refl A
+  assert_true(@axiom.ua_eta_legacy(fn(x : Int) -> Int { x }, fn(x : Int) -> Int { x }, tagA))
+  // uaβ：transport along ua(e) 定義上就是 e.to（glue 消除規則），見證為 refl
+  let beta = @axiom.ua_beta(e, tagA, tagB, 7)
+  assert_eq(beta.lhs, 7)
+  assert_eq(beta.rhs, 7)
+  assert_eq(beta.code, 0)
+  // 虧損非 0 的「假等價」不會被當成合法路徑（code > 0 可被檢測出來）
+  let bad : @axiom.Equiv[Int, Int] = { to: fn(x) { x }, from: fn(x) { x }, left_inv_code: 3, right_inv_code: 4 }
+  assert_eq(@axiom.ua(bad, tagA, tagB).code, 7)
+  assert_eq(@axiom.ua_beta(bad, tagA, tagB, 1).code, 7)
+  // 完整的窮盡證明見 univalence_theorem_test.mbt
+  assert_eq(@axiom.univalence_axiom_count(), 0)
+  assert_true(@axiom.univalence_holds(3))
 }
 
 test "hott: hlevel" {

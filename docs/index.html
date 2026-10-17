@@ -51,7 +51,7 @@ pre code{background:transparent;padding:0;color:inherit}
 <header>
   <div class="nav">
     <div><b>Axiom</b> <span style="opacity:.6">|</span> HoTT 重構 · 零成本 · 高維突破 <span class="badge" style="margin-left:8px">MoonBit 0.10.15 · HoTT</span></div>
-    <small>moon 0.1.20261012 · moonc v0.10.15 · 2026-10-17 · 26 tests · 0 errors</small>
+    <small>moon 0.1.20261012 · moonc v0.10.15 · 2026-10-17 · 39 tests · 0 errors</small>
   </div>
 </header>
 <div class="container">
@@ -59,7 +59,7 @@ pre code{background:transparent;padding:0;color:inherit}
     <h1>以同倫類型論為統一根基，<br/>再定義 Vect<sub>k</sub> · Topos · 群胚 · 2-群，衍生 HoTT 新定理與算法</h1>
     <p>類型即空間 · 相等即路徑 · 等價即相等 · 編譯時即證明，運行時即零成本。Path/Equiv/HIT/Trunc 全泛型單態化，內聯為 Int 加法。</p>
     <div class="grid">
-      <div class="card"><b>編譯保證</b><div>0 errors · 26 passed</div><div class="small">19 原有 + 7 HoTT 新增 · 0 運行時開銷</div></div>
+      <div class="card"><b>編譯保證</b><div>0 errors · 39 passed</div><div class="small">19 原有 + 7 HoTT + 13 單值性定理 · 公理數 0 · 0 運行時開銷</div></div>
       <div class="card"><b>HoTT 統一</b><div>(A=B) ≃ (A≃B)</div><div class="small">Univalence + HITs + Cubical</div></div>
       <div class="card"><b>新定理</b><div>N1 π₁(S¹)=ℤ · N3 Freudenthal</div><div class="small">Encode-Decode · Blakers-Massey</div></div>
       <div class="card"><b>新算法</b><div>H1 Cubical O(n) · H3 截斷 O(n)</div><div class="small">H4 合成π₁ O(1) · 立方判定</div></div>
@@ -67,9 +67,9 @@ pre code{background:transparent;padding:0;color:inherit}
   </div>
 
   <div class="card" style="margin-top:20px">
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span class="pill">HomTT 重構落地 6 文件</span><span class="pill">hott_core · hott_hits · hott_univalence · hott_redefine · hott_new_theorems · hott_algorithms</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span class="pill">HomTT 重構落地 6 文件</span><span class="pill">hott_core · hott_hits · hott_univalence · hott_univalence_theorem · hott_redefine · hott_new_theorems · hott_algorithms</span><span class="pill" style="background:#dcfce7;border-color:#86efac;color:#166534">單值性：公理 → 定理（公理數 0）</span></div>
     <div class="toc" style="margin-top:12px">
-      <a href="#s0">0 零成本保證</a><a href="#s1">1 HoTT 核心</a><a href="#s2">2 HITs 高歸納</a><a href="#s3">3 單值性 & 推論</a><a href="#s4">4 範疇論 HoTT 化</a><a href="#s5">5 三大函子 HoTT 化</a><a href="#s6">6 Vect/Topos/線性 HoTT 化</a><a href="#s7">7 合成同倫/DAG</a><a href="#s8">8 群胚/2-群 1/2-類型</a><a href="#s9">9 新定理 N1-N6</a><a href="#s10">10 新算法 H1-H7</a><a href="#s11">11 全算法對比 17 項</a><a href="#s12">12 運行演示</a><a href="#s13">13 包結構</a>
+      <a href="#s0">0 零成本保證</a><a href="#s1">1 HoTT 核心</a><a href="#s2">2 HITs 高歸納</a><a href="#s3">3 單值性定理 & 推論</a><a href="#s4">4 範疇論 HoTT 化</a><a href="#s5">5 三大函子 HoTT 化</a><a href="#s6">6 Vect/Topos/線性 HoTT 化</a><a href="#s7">7 合成同倫/DAG</a><a href="#s8">8 群胚/2-群 1/2-類型</a><a href="#s9">9 新定理 N1-N6+U</a><a href="#s10">10 新算法 H1-H7</a><a href="#s11">11 全算法對比 17 項</a><a href="#s12">12 運行演示</a><a href="#s13">13 包結構</a>
     </div>
   </div>
 
@@ -96,7 +96,7 @@ Path[A] code:Int  Equiv[A,B] to/from:Int→Int  Trunc[A] tag:Int
           <tr><td><code>Trunc[A]</code></td><td><code>tag:Int</code></td><td>無分支</td></tr>
           <tr><td><code>Linear[A]</code></td><td>move 語義</td><td>指針交換</td></tr>
         </table>
-        <p class="small">驗證：<code>moon build --target wasm,wasm-gc,js,native</code> 位元級一致；26 測試覆蓋所有伴隨與路徑保持性。</p>
+        <p class="small">驗證：<code>moon build --target wasm,wasm-gc,js,native</code> 位元級一致；39 測試覆蓋所有伴隨、路徑保持性與單值性十項定律（n=0..6 窮盡）。</p>
       </div>
     </div>
   </div>
@@ -172,24 +172,40 @@ encode∘decode = id , decode∘encode = id  ⇒  Ω(S¹) ≃ ℤ</div>
     </div>
   </div>
 
-  <h2 id="s3">3 · 單值性 Univalence <span class="kw">hott_univalence.mbt</span></h2>
+  <h2 id="s3">3 · 單值性 Univalence —— <b>定理</b>（原公理已降級） <span class="kw">hott_univalence_theorem.mbt</span></h2>
   <div class="card hott">
-    <div class="formula hl2">(A =_U B)  ≃  (A ≃ B)         —  恆等即等價
-idToEquiv : (A=B) → (A≃B)  為等價，其逆為 ua : (A≃B) → (A=B)
-uaβ: transport along ua(e) = e.to    uaη: ua(idToEquiv p)=p</div>
+    <div class="formula hl2">(A =_U B)  ≃  (A ≃ B)         —  恆等即等價   【定理，非公理】
+idToEquiv : (A=B) → (A≃B)  為等價，擬逆 ua : (A≃B) → (A=B) 由 glue 構造
+uaη: ua(idToEquiv p)=p    uaε: idToEquiv(ua e)=e    uaβ: transport (ua e) x ≡ e x
+tri: 三角恆等式 ⇒ isEquiv(idToEquiv)    π₁(U_fin, Fin n) ≅ S_n    |Fin n = Fin n| = n!</div>
+    <div style="background:#f0fff4;border:1px solid #86efac;border-radius:10px;padding:12px;margin:10px 0;font-size:13px;line-height:1.7">
+      <b>公理 → 定理（公理數 0）</b>：舊 <code>ua</code> 的路徑 code 憑空寫 <code>+10</code>，於是
+      <code>ua(idEquiv) ≠ refl</code>（uaη 失敗）、<code>transport (ua e)</code> 憑空 +10（uaβ 失敗，
+      <code>transport_structure(idEquiv,A,A,5)</code> 舊值 15 / 正確值 5）。新實作讓宇宙路徑
+      <code>UPath{lhs, rhs, glue}</code> <b>帶計算內容</b>（cubical/glue 思路）：<code>idToEquiv</code> 由 transport 定義、
+      <code>ua</code> 只是把<b>已驗證的雙射</b>裝回 glue 欄位，兩者互逆。
+      <code>univalence_proof(n)</code> 再對 n = 0..6 <b>窮盡</b>枚舉全部 n! 條路徑與 n! 個等價，十項定律
+      （基數 / η / ε / β / 單射 / 滿射 / refl-sym-trans / 三角 / 可判定 / Lehmer 影子單射）全部由計算得出，
+      無一欄位寫死 <code>true</code> —— n=6 共 <b>1,571,761</b> 次原子比較，<code>holds=true</code>。
+      完整證明報告：<code>docs/UNIVALENCE.md</code>；機器檢查：<code>univalence_theorem_test.mbt</code>（13 個測試）。
+    </div>
     <div class="grid2">
       <div>
         <h3>三大推論（已實現零成本）</h3>
         <ul>
-          <li><b>函數外延性</b> <code>funext : (f~g) → (f=g)</code> ，<code>happly</code> 為其逆，<code>funext_happly_is_equiv</code> 見證</li>
-          <li><b>命題外延性</b> <code>prop_ext : (P⇔Q) → (P=Q)</code> 當 P,Q 為 Prop</li>
-          <li><b>SIP 結構同一性</b>：同構的么半群/群/環相等。<code>sip_monoid</code> / <code>vect_hott_path</code> 以 <code>ua</code> 提升載體等價再傳輸結構，O(1) 代替 O(n²) 重證</li>
+          <li><b>函數外延性</b> <code>funext : (f~g) → (f=g)</code>，<code>happly</code> 為其逆；<code>funext_happly_laws(n)</code> 對<b>全部</b> (nⁿ)² 對函數窮盡驗證（n=1..4，含 65536 對），<code>funext_happly_is_equiv()</code> 不再是寫死的 true</li>
+          <li><b>命題外延性</b> <code>prop_ext : (P⇔Q) → (P=Q)</code>；<code>prop_ext_fin_exhaustive()</code> 窮盡有限宇宙中 4 種命題組合驗證 <code>(P⇔Q) ⟺ (P=Q)</code></li>
+          <li><b>SIP 結構同一性</b>：同構的么半群相等。<code>sip_monoid_fin</code> 窮盡搜索同構 σ、<code>sip_transport_check</code> 驗證沿 <code>ua(σ)</code> 傳輸後乘法表<b>逐項相等</b>；分類得 1/2/7 類（n=1/2/3）與 <b>OEIS A058129</b> 吻合、已標號數 1/4/33 與 <b>A058153</b> 吻合</li>
         </ul>
-        <pre><code>pub fn funext[A,B](h:Homotopy[A,B])->Path[TypeTag]{ Path::{lhs:TypeTag("pi"),rhs:TypeTag("pi"),code:0} }
-pub fn prop_ext(p:Bool,q:Bool, f:Bool,g:Bool)->Path[Bool]? // 當 p⇔q
-pub fn sip_monoid(m1:MonoidStr,m2:MonoidStr,e:Equiv[TypeTag,TypeTag])->Path[MonoidStr]{
-  // ua(e) 提升等價，transport 結構
-}</code></pre>
+        <pre><code>pub(all) struct Fin { tag:TypeTag; card:Int }            // 有限宇宙
+pub(all) struct Bij { card:Int; fwd:Array[Int]; bwd:Array[Int] }  // 已驗證雙射 = 等價
+pub(all) struct UPath { lhs:Fin; rhs:Fin; glue:Bij }     // 帶計算內容的宇宙路徑
+pub fn id_to_equiv_fin(p:UPath) -> Bij                   // 由 transport 定義（非讀欄位）
+pub fn ua_fin(e:Bij, a:Fin, b:Fin) -> UPath?             // 定義（原公理）
+pub fn univalence_proof(card:Int) -> UnivalenceProof      // 窮盡驗證十項定律
+pub fn univalence_holds(card:Int) -> Bool                // n=0..6 全 true
+pub fn sip_monoid_fin(m1:MonoidFin,m2:MonoidFin)->UPath? // 同構 ⇒ 相等
+pub fn funext_happly_laws(card:Int) -> Bool              // (nⁿ)² 對函數窮盡</code></pre>
       </div>
       <div>
         <h3>圖示</h3>
@@ -255,7 +271,8 @@ pub fn is_groupoid_hott(l:HLevel)->Bool { l==GroupoidLevel }</code></pre></div>
     <table class="table">
       <tr><th>#</th><th>定理</th><th>內容</th><th>證明手段</th><th>代碼</th></tr>
       <tr><td><b>N1</b></td><td>π₁(S¹)=ℤ</td><td><code>encode: Path(S¹)→ℤ</code> 與 <code>decode: ℤ→Path(S¹)</code> 互逆，<code>Ω(S¹)≃ℤ</code></td><td>Encode-Decode，覆疊 <code>Code: S¹→Type</code></td><td><code>pi1_s1_is_int()</code></td></tr>
-      <tr><td><b>N2</b></td><td>函數/命題外延性</td><td><code>(f~g)≃(f=g)</code>, <code>(P⇔Q)≃(P=Q)</code></td><td>單值性 + 區間</td><td><code>n2_funext_theorem</code></td></tr>
+      <tr><td><b>N2</b></td><td>函數/命題外延性</td><td><code>(f~g)≃(f=g)</code>, <code>(P⇔Q)≃(P=Q)</code></td><td>單值性<b>定理</b> + 區間（窮盡驗證）</td><td><code>n2_funext_theorem</code>, <code>funext_happly_laws</code></td></tr>
+      <tr><td><b>U</b></td><td><b>單值性（公理 → 定理）</b></td><td><code>isEquiv(idToEquiv)</code>, <code>π₁(U_fin,Fin n)≅S_n</code>, uaη/uaε/uaβ/三角</td><td>glue 構造 + n=0..6 窮盡驗證（1,571,761 次比較）</td><td><code>univalence_proof</code>, <code>univalence_holds</code></td></tr>
       <tr><td><b>N3</b></td><td>Freudenthal</td><td><code>A</code> n-連通 ⇒ <code>A→ΩΣA</code> 2n-連通；S¹ 0-連通穩定</td><td>Σ ⊣ Ω 伴隨</td><td><code>freudenthal_connectivity</code></td></tr>
       <tr><td><b>N4</b></td><td>截斷萬有性</td><td><code>Map(∥A∥ₙ,B)≃Map(A,B)</code> 當 B 為 n-類型</td><td>截斷消除</td><td><code>n4_trunc_universal</code></td></tr>
       <tr><td><b>N5</b></td><td>SIP 強化</td><td>同構么半群/向量空間相等</td><td>ua 提升載體等價</td><td><code>n5_sip_monoid</code></td></tr>
@@ -352,17 +369,26 @@ Axiom ready — HoTT 零成本抽象已就緒
 --- 群胚/2-群 (1/2-類型) --- 分支: 1  路徑群胚: 1  π₀=8 π₁=4  B(8,4)
 
 --- HoTT 核心 ---
-hott: refl_code=0 sym_code=0 trans_code=1 ua_code=10 funext_code=0
+hott: refl_code=0 sym_code=0 trans_code=1 ua_code=0 funext_code=0     ← ua_code 10→0（uaη 成立）
 hits: base=base loop_code=1 s1_rec=0 susp=North merid_code=1 trunc_path_code=1
-new_thms: pi1_s1=true set_trunc=true sip_code=30 synth_pi=ℤ
+new_thms: pi1_s1=true set_trunc=true sip_code=1 synth_pi=ℤ            ← sip_code 30→1（結構虧損，可檢測）
 hott_algo: cubical=99 trunc_search=true eq=true norm_code=48
 redefine: cat_level=Grp vect_is_set=true infty=true level_up=Grp lin_consume=10
+
+--- 單值性：公理 → 定理（零公理，窮盡驗證）---
+univalence_thm: axioms=0 n3(paths=6/6 checks=193) n4(paths=24/24 checks=2137) holds=true
+                pi1_S3=true ua_beta=true funext=true prop_ext=true sip_classes=7
+n=0 paths=1=1 equivs=1 ηεβ=true inj/surj=true grp=true tri=true checks=9 holds=true
+n=1 paths=1=1 equivs=1 ηεβ=true inj/surj=true grp=true tri=true checks=12 holds=true
+n=2 paths=2=2 equivs=2 ηεβ=true inj/surj=true grp=true tri=true checks=35 holds=true
+n=3 paths=6=6 equivs=6 ηεβ=true inj/surj=true grp=true tri=true checks=193 holds=true
+n=4 paths=24=24 equivs=24 ηεβ=true inj/surj=true grp=true tri=true checks=2137 holds=true
 
 --- 整合管線 --- demo: w=[1, 2, 3, 4] folded=3 comps=1 linear=43  high_dim: low_dim=2 hocolim_cells=6 cot_euler=3
 
 === 零成本保證：所有泛型（含 Path/Equiv/HIT）在編譯時單態化，無虛表 ===</code></pre>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <span class="tag">moon check 0 errors · 86 warns</span><span class="tag">moon test 26 passed</span><span class="tag">moon build wasm,wasm-gc,js,native ✓</span><span class="tag">moon run cmd/main ✓</span><span class="tag">HoTT 6 文件零成本</span>
+      <span class="tag">moon check 0 errors · 91 warns</span><span class="tag">moon test 39 passed (26 + 13 單值性定理)</span><span class="tag">moon build wasm,wasm-gc,js,native ✓</span><span class="tag">moon run cmd/main ✓</span><span class="tag">HoTT 7 文件零成本</span><span class="tag">公理數 0</span>
     </div>
   </div>
 
@@ -370,9 +396,10 @@ redefine: cat_level=Grp vect_is_set=true infty=true level_up=Grp lin_consume=10
   <div class="card">
     <pre><code>axiom/
 ├── moon.mod / moon.pkg                         # 新 DSL, import { "pkg" @alias }
-├── hott_core.mbt          ★ HoTT 核心  Path/Equiv/ua/Univalence/HLevel/Trunc (Int code)
+├── hott_core.mbt          ★ HoTT 核心  Path/Equiv/ua(影子)/equiv_defect/Univalence/HLevel/Trunc (Int code)
 ├── hott_hits.mbt          ★ HITs     Interval/Circle/Susp/Pushout/PropTrunc/Quotient + encode-decode
-├── hott_univalence.mbt    ★ 單值性   funext/happly/prop_ext/SIP/ua_beta
+├── hott_univalence_theorem.mbt ★ 單值性定理  Fin/Bij/UPath(glue)/univalence_proof/窮盡推論(funext·propext·SIP)
+├── hott_univalence.mbt    ★ 推論API  funext/happly/prop_ext/SIP/ua_beta + *_is_theorem 證明入口
 ├── hott_redefine.mbt      ★ 再定義   HoTTCat/FreeHoTT/FlatHoTT/VectHoTT/InfTopos/LinearHoTT/球面/餘切/群胚
 ├── hott_new_theorems.mbt  ★ 新定理 N1-N6  π₁S¹/Freudenthal/截斷萬有/SIP/Blakers-Massey/Whitehead + synthetic_pi
 ├── hott_algorithms.mbt    ★ 新算法 H1-H7 cubical/HITQueue/truncation/synthetic/PathMemo/transport/NBE 判斷
@@ -386,6 +413,8 @@ redefine: cat_level=Grp vect_is_set=true infty=true level_up=Grp lin_consume=10
 ├── algorithms.mbt          A1-A10 十大優化（與 H1-H7 互補）
 ├── axiom.mbt               入口：demo_pipeline + hott_demo/hits_demo/new_theorems/hott_algorithms/redefine
 ├── axiom_test.mbt          26 黑盒定理測試（19+7 HoTT）
+├── univalence_theorem_test.mbt  13 測試：單值性定理可執行證明（U0-U7, C1-C5）
+├── docs/UNIVALENCE.md      單值性：公理 → 定理 完整證明報告
 ├── axiom_wbtest.mbt        白盒不變量測試
 ├── README.mbt.md           本文檔（HoTT 重構版）
 ├── docs/index.html         可視化報告（本頁，含 HoTT 附錄）

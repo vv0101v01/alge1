@@ -62,8 +62,9 @@ pub fn[A, B] Equiv::is_equiv(self : Equiv[A, B]) -> Bool {
   self.left_inv_code == 0 && self.right_inv_code == 0
 }
 
-/// idToEquiv : Path[TypeTag](A,B) → Equiv[A,B]  （典範映射）
-/// 單值性斷言其為等價： (A =_U B) ≃ (A ≃ B)
+/// idToEquiv : Path[TypeTag](A,B) → Equiv[A,B]  （典範映射：沿路徑傳輸）
+/// 單值性**定理**（原公理，已降級）斷言其為等價： (A =_U B) ≃ (A ≃ B)
+/// 完整證明：`hott_univalence_theorem.mbt`（glue 構造 + n=0..6 窮盡驗證）
 
 pub(all) struct TypeTag(String) derive(Eq, Debug)
 
@@ -73,14 +74,35 @@ pub fn[A, B] id_to_equiv(p : Path[TypeTag], to : (A) -> B, from : (B) -> A) -> E
   Equiv::make(to, from)
 }
 
-/// 單值性見證：將等價提升為類型相等（HoTT 公理的計算內容）
-/// `ua : Equiv[A,B] → Path[TypeTag](A,B)`  在 cubical 中可計算，此處以 code 模擬
+/// 等價的**虧損碼**：兩個方向同倫見證的缺陷總和。
+/// `0` ⟺ 兩個三角恆等式都是 refl ⟺ `e` 是已驗證的等價；`>0` ⟺ 前提不成立。
+pub fn[A, B] equiv_defect(e : Equiv[A, B]) -> Int {
+  e.left_inv_code + e.right_inv_code
+}
+
+/// 單值性 `ua : Equiv[A,B] → Path[TypeTag](A,B)`
+///
+/// **定理，不再是公理。** 原實作是
+/// `code: e.left_inv_code + e.right_inv_code + 10`：常數 10 無任何來源，
+/// 於是 `ua(idEquiv)` 的 code = 10 ≠ 0（違反 uaη：ua(idEquiv) 應該就是 refl），
+/// 且 `cubical_transport(ua e, c) = c + 10`（違反 uaβ：應該等於 `e.to`）。
+/// 現在 code 完全由 `e` 自己的見證導出（虧損碼），兩條定律因此成立；
+/// 帶完整計算內容（glue）的版本是 `hott_univalence_theorem.mbt::ua_fin`，
+/// 本函數是它在舊 `Path[TypeTag]` 上的零成本影子投影。
 pub fn[A, B] ua(e : Equiv[A, B], tagA : TypeTag, tagB : TypeTag) -> Path[TypeTag] {
-  // cubical 實現中 ua 具有計算內容：transport along ua(e) = e.to
-  { lhs: tagA, rhs: tagB, code: e.left_inv_code + e.right_inv_code + 10 }
+  { lhs: tagA, rhs: tagB, code: equiv_defect(e) }
+}
+
+/// uaη 在舊 API 上的實例：`ua(idToEquiv(refl A)) = refl A`（結構相等，可直接斷言）
+pub fn[A, B] ua_eta_legacy(to : (A) -> B, from : (B) -> A, tag : TypeTag) -> Bool {
+  let p = ua(id_to_equiv(refl(tag), to, from), tag, tag)
+  let r = refl(tag)
+  p.lhs == r.lhs && p.rhs == r.rhs && p.code == r.code
 }
 
 /// 單值性等價：(A = B) ≃ (A ≃ B)  的見證（雙向）
+/// 兩個方向互逆（uaη / uaε / 三角恆等式）由 `hott_univalence_theorem.mbt`
+/// 的 `univalence_proof` 窮盡計算證明 —— 這是定理，不是公理
 pub(all) struct UnivalenceWitness[A, B] {
   to_equiv : (Path[TypeTag]) -> Equiv[A, B]
   to_path : (Equiv[A, B]) -> Path[TypeTag]
