@@ -7,17 +7,17 @@
 // 经典同伦论需覆盖空间；HoTT 中以类型族 Code : S¹ → Type 直接编码
 pub(all) struct CoverCode { winding : Int } derive(Eq, Debug)
 
-pub fn cover_code(base : Circle) -> CoverCode {
+pub fn cover_code(base : @hott_hits.Circle) -> CoverCode {
   ignore(base)
   { winding: 0 }
 }
 
-pub fn encode_s1(p : Path[Circle]) -> Int {
+pub fn encode_s1(p : @hott_core.Path[@hott_hits.Circle]) -> Int {
   // Encode: Path[Circle](base,base) → ℤ  以 code 計繞數
   p.code
 }
 
-pub fn decode_s1(n : Int) -> Path[Circle] { circle_decode(n) }
+pub fn decode_s1(n : Int) -> @hott_core.Path[@hott_hits.Circle] { @hott_hits.circle_decode(n) }
 
 /// 定理：encode ∘ decode = id_ℤ 且 decode ∘ encode = id_{Path}
 pub fn pi1_s1_is_int() -> Bool {
@@ -29,34 +29,34 @@ pub fn pi1_s1_is_int() -> Bool {
 }
 
 /// 推論：Ω(S¹, base) ≃ ℤ  （基于点的环路空间等价于整数）
-pub fn loop_space_s1_equiv_int() -> Equiv[Path[Circle], Int] {
-  Equiv::make(encode_s1, decode_s1)
+pub fn loop_space_s1_equiv_int() -> @hott_core.Equiv[@hott_core.Path[@hott_hits.Circle], Int] {
+  @hott_core.Equiv::make(encode_s1, decode_s1)
 }
 
 // ---------- 定理 N2 — 函數外延性等價於路徑相等（由單值性導出） ----------
 /// 定理：funext 成立 ⇔ happly 為等價
 /// 證明梗概：由單值性推出區間類型 I 的泛性，再得 Π-類型的路徑即同倫
-pub fn[A, B] n2_funext_theorem(h : Homotopy[A, B]) -> Path[(A) -> B] {
-  funext(h)
+pub fn[A, B] n2_funext_theorem(h : @hott_core.Homotopy[A, B]) -> @hott_core.Path[(A) -> B] {
+  @univalence.funext(h)
 }
 
-pub fn[A, B] n2_funext_inv(p : Path[(A) -> B], x : A) -> Path[B] {
-  happly(p, x)
+pub fn[A, B] n2_funext_inv(p : @hott_core.Path[(A) -> B], x : A) -> @hott_core.Path[B] {
+  @univalence.happly(p, x)
 }
 
 /// 定理見證：funext 與 happly 互逆
-pub fn n2_funext_is_equiv() -> Bool { funext_happly_is_equiv() }
+pub fn n2_funext_is_equiv() -> Bool { @univalence.funext_happly_is_equiv() }
 
 // ---------- 定理 N3 — 懸垂-環路伴隨 Σ ⊣ Ω 與 Freudenthal ----------
 /// Σ : Type → Type 左伴隨 Ω : Type → Type
 /// Freudenthal：若 A 為 n-連通，則 A → ΩΣA 為 2n-連通
 pub(all) struct SuspensionLoopAdj[A] {
-  unit : (A) -> Path[Susp[A]]
-  counit : (Path[Susp[A]]) -> A
+  unit : (A) -> @hott_core.Path[@hott_hits.Susp[A]]
+  counit : (@hott_core.Path[@hott_hits.Susp[A]]) -> A
 }
 
-pub fn[A] freudenthal_unit(a : A) -> Path[Susp[A]] {
-  merid(a)
+pub fn[A] freudenthal_unit(a : A) -> @hott_core.Path[@hott_hits.Susp[A]] {
+  @hott_hits.merid(a)
 }
 
 pub fn freudenthal_connectivity(n : Int) -> Int { 2 * n }
@@ -69,27 +69,27 @@ pub fn n3_freudenthal_for_s1() -> String {
 // ---------- 定理 N4 — 命題/集合截斷的萬有性 ----------
 /// 定理：∥A∥₋₁ 為命題反射，∥A∥₀ 為集合反射
 /// 萬有性：對 n-類型 B，Map(∥A∥ₙ, B) ≃ Map(A, B)
-pub fn[A, B] n4_trunc_universal(level : HLevel, f : (A) -> B) -> (Trunc[A]) -> B {
-  trunc_rec(level, f)
+pub fn[A, B] n4_trunc_universal(level : @hott_core.HLevel, f : (A) -> B) -> (@hott_core.Trunc[A]) -> B {
+  @hott_core.trunc_rec(level, f)
 }
 
-pub fn[A] n4_prop_trunc_is_prop(t1 : PropTrunc[A], t2 : PropTrunc[A]) -> Path[PropTrunc[A]] {
-  prop_trunc_path(t1, t2)
+pub fn[A] n4_prop_trunc_is_prop(t1 : @hott_hits.PropTrunc[A], t2 : @hott_hits.PropTrunc[A]) -> @hott_core.Path[@hott_hits.PropTrunc[A]] {
+  @hott_hits.prop_trunc_path(t1, t2)
 }
 
 // ---------- 定理 N5 — 結構同一性 SIP 強化版 ----------
 /// 定理：對任意單值範疇論結構（么半群、群、環），同構即相等
 /// 例：Monoid 的 carrier 等價 + 結構保持 ⇒ Monoid 相等
-pub fn n5_sip_monoid_path(m1 : MonoidStr, m2 : MonoidStr) -> Path[MonoidStr] {
+pub fn n5_sip_monoid_path(m1 : @univalence.MonoidStr, m2 : @univalence.MonoidStr) -> @hott_core.Path[@univalence.MonoidStr] {
   // 需給出載體等價與結構保持的同倫
-  let e = Equiv::make(fn(x : TypeTag) -> TypeTag { x }, fn(x : TypeTag) -> TypeTag { x })
-  sip_monoid(e, m1, m2)
+  let e = @hott_core.Equiv::make(fn(x : @hott_core.TypeTag) -> @hott_core.TypeTag { x }, fn(x : @hott_core.TypeTag) -> @hott_core.TypeTag { x })
+  @univalence.sip_monoid(e, m1, m2)
 }
 
 /// 推論：對 VectHoTT，線性同構即相等（由單值性）
-pub fn n5_sip_vect(v1 : VectHoTT, v2 : VectHoTT) -> Path[VectHoTT] {
-  let e = Equiv::make(fn(x : VectHoTT) -> VectHoTT { x }, fn(x : VectHoTT) -> VectHoTT { x })
-  vect_hott_path(v1, v2, e)
+pub fn n5_sip_vect(v1 : @hott_redefine.VectHoTT, v2 : @hott_redefine.VectHoTT) -> @hott_core.Path[@hott_redefine.VectHoTT] {
+  let e = @hott_core.Equiv::make(fn(x : @hott_redefine.VectHoTT) -> @hott_redefine.VectHoTT { x }, fn(x : @hott_redefine.VectHoTT) -> @hott_redefine.VectHoTT { x })
+  @hott_redefine.vect_hott_path(v1, v2, e)
 }
 
 // ---------- 定理 N6 — 高維群胚的 Whitehead / Blakers-Massey 原型 ----------

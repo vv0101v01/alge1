@@ -1,0 +1,12 @@
+// package axiom/axiom/cubical — 有限立方體演算法 K1-K3：□ 範疇 / Kan 填充 / cubical NBE
+import {
+  "axiom/axiom/hott_core" @hott_core,
+  "axiom/axiom/univalence" @univalence,
+}
+
+// 黑盒測試（cubical_test.mbt）額外需要的 package
+import {
+  "axiom/axiom/hott_core" @hott_core,
+  "axiom/axiom/univalence" @univalence,
+  "axiom/axiom/hott_algorithms" @hott_algorithms,
+} for "test"

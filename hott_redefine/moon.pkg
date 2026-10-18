@@ -1,0 +1,6 @@
+// package axiom/axiom/hott_redefine — 用 HoTT 再定義原有結構
+import {
+  "axiom/axiom/hott_core" @hott_core,
+  "axiom/axiom/hott_hits" @hott_hits,
+  "axiom/axiom/structures" @structures,
+}

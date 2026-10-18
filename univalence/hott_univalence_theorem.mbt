@@ -39,7 +39,7 @@
 ///|
 /// 宇宙中的有限類型。`tag` 是名字，`card` 是完整結構碼（基數）。
 pub(all) struct Fin {
-  tag : TypeTag
+  tag : @hott_core.TypeTag
   card : Int32
 } derive(Eq, Debug)
 
@@ -352,7 +352,7 @@ pub fn upath_all(a : Fin, b : Fin) -> Array[UPath] {
 ///|
 /// 零成本影子：把帶 glue 的路徑投影回舊 API 的 `Path[TypeTag]`。
 /// code 取 glue 的 Lehmer 碼 ⇒ 投影在有限宇宙上是**單射**，且 `refl ↦ code 0`。
-pub fn upath_to_legacy(p : UPath) -> Path[TypeTag] {
+pub fn upath_to_legacy(p : UPath) -> @hott_core.Path[@hott_core.TypeTag] {
   { lhs: p.lhs.tag, rhs: p.rhs.tag, code: lehmer_code(p.glue), }
 }
 
@@ -741,17 +741,17 @@ pub fn funext_defect(f : Array[Int32], g : Array[Int32]) -> Int32 {
 
 ///|
 /// 有限函數外延性：逐點相等的驗證**就是**路徑（code = 虧損，0 才是真路徑）
-pub fn funext_fin(f : Array[Int32], g : Array[Int32]) -> Path[Array[Int32]] {
+pub fn funext_fin(f : Array[Int32], g : Array[Int32]) -> @hott_core.Path[Array[Int32]] {
   { lhs: f, rhs: g, code: funext_defect(f, g), }
 }
 
 ///|
-pub fn happly_fin(p : Path[Array[Int32]], i : Int32) -> Path[Int32] {
+pub fn happly_fin(p : @hott_core.Path[Array[Int32]], i : Int32) -> @hott_core.Path[Int32] {
   { lhs: p.lhs[i], rhs: p.rhs[i], code: p.code, }
 }
 
 ///|
-fn path_array_eq(p : Path[Array[Int32]], q : Path[Array[Int32]]) -> Bool {
+fn path_array_eq(p : @hott_core.Path[Array[Int32]], q : @hott_core.Path[Array[Int32]]) -> Bool {
   p.code == q.code && int_array_eq(p.lhs, q.lhs) && int_array_eq(p.rhs, q.rhs)
 }
 

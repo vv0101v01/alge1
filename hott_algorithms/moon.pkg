@@ -1,0 +1,9 @@
+// package axiom/axiom/hott_algorithms — HoTT 新算法 H1-H7
+import {
+  "axiom/axiom/hott_core" @hott_core,
+  "axiom/axiom/hott_hits" @hott_hits,
+  "axiom/axiom/structures" @structures,
+  "axiom/axiom/univalence" @univalence,
+  "axiom/axiom/cubical" @cubical,
+  "axiom/axiom/hott_theorems" @hott_theorems,
+}

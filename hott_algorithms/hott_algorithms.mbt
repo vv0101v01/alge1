@@ -11,14 +11,14 @@
 /// 沿帶 glue 的宇宙路徑 `UPath` 計算，七條定律（存在、唯一/盒條件、泛性質、
 /// 函子性、round-trip、refl、**uaβ**）在 `Fin card`（card ≤ 5）上窮盡驗證。
 /// 入口：`cubical_transport_kan`。複雜度：O(1)（glue 查表）。
-pub fn[A] cubical_transport(p : Path[A], val_code : Int) -> Int {
+pub fn[A] cubical_transport(p : @hott_core.Path[A], val_code : Int) -> Int {
   val_code + p.code
 }
 
 /// H1 的真正版本：沿帶 glue 的宇宙路徑解開放盒（Kan 填充 = transport）
 /// 回傳 `None` 表示盒不成立（元素越界），不會假裝填得出來
-pub fn cubical_transport_kan(p : UPath, x : Int) -> Int? {
-  match kan_fill_el({ path: p, bottom: x, top: None }) {
+pub fn cubical_transport_kan(p : @univalence.UPath, x : Int) -> Int? {
+  match @cubical.kan_fill_el({ path: p, bottom: x, top: None }) {
     Some(f) => Some(f.top)
     None => None
   }
@@ -26,11 +26,11 @@ pub fn cubical_transport_kan(p : UPath, x : Int) -> Int? {
 
 /// H1 demo：在 `Fin 3` 上沿 3-循環 (0 1 2) 的 `ua` 路徑做 Kan 填充，`1 ↦ 2`
 pub fn cubical_kan_demo() -> String {
-  match bij_make(3, [1, 2, 0]) {
+  match @univalence.bij_make(3, [1, 2, 0]) {
     None => "n/a"
     Some(b) => {
-      let a = fin("Fin3", 3)
-      match upath_make(a, a, b) {
+      let a = @univalence.fin("Fin3", 3)
+      match @univalence.upath_make(a, a, b) {
         None => "n/a"
         Some(p) => {
           match cubical_transport_kan(p, 1) {
@@ -44,7 +44,7 @@ pub fn cubical_kan_demo() -> String {
 }
 
 /// 批量傳輸：對 Array[A] 沿同一路徑傳輸，融合為單次映射
-pub fn[A] cubical_batch_transport(p : Path[A], arr : Array[A], code_of : (A) -> Int, mk : (Int) -> A) -> Array[A] {
+pub fn[A] cubical_batch_transport(p : @hott_core.Path[A], arr : Array[A], code_of : (A) -> Int, mk : (Int) -> A) -> Array[A] {
   // 將每個元素 code 傳輸，融合循環，零成本：單態化後內聯
   let out : Array[A] = []
   for x in arr {
@@ -85,16 +85,16 @@ pub fn[A] truncated_exists_search(vals : Array[A], pred : (A) -> Bool) -> Bool {
 }
 
 /// 集合截斷商化搜索：利用 ∥A∥₀ 的商結構將對稱狀態空間商化
-pub fn truncated_orbit_search(cm : CrossedModule, elems : Array[TwoGroupElem]) -> Int {
+pub fn truncated_orbit_search(cm : @structures.CrossedModule, elems : Array[@structures.TwoGroupElem]) -> Int {
   // 直接使用截斷後的軌道計數（已化為集合層次）
-  two_group_orbit_count(cm, elems)
+  @structures.two_group_orbit_count(cm, elems)
 }
 
 // ---------- 算法 H4 — 合成同倫群計算（Encode-Decode 融合） ----------
 /// 以 Encode-Decode 計算 Ω(S¹) = ℤ 的合成算法：將路徑合成化為整數加法 O(1)
 /// 優於經典的單純逼近 O(n³)
-pub fn synthetic_loop_add(p : Path[Circle], q : Path[Circle]) -> Path[Circle] {
-  trans(p, q)
+pub fn synthetic_loop_add(p : @hott_core.Path[@hott_hits.Circle], q : @hott_core.Path[@hott_hits.Circle]) -> @hott_core.Path[@hott_hits.Circle] {
+  @hott_core.trans(p, q)
 }
 
 pub fn synthetic_pi1_add(m : Int, n : Int) -> Int { m + n }
@@ -105,7 +105,7 @@ pub fn synthetic_pi_compute(n : Int, k : Int) -> String {
   if n == 1 && k == 1 { "ℤ via encode-decode" }
   else if k < n { "0 (連通度)" }
   else if k == n { "ℤ ( Freudenthal 穩定)" }
-  else { synthetic_pi(k, n) } // 遞歸占位
+  else { @hott_theorems.synthetic_pi(k, n) } // 遞歸占位
 }
 
 // ---------- 算法 H5 — 高歸納記憶化（HIT Memoization） ----------
@@ -113,10 +113,10 @@ pub fn synthetic_pi_compute(n : Int, k : Int) -> String {
 /// 由單值性保證等價類型共享內存，命中率較傳統哈希提升至路徑層次
 pub(all) struct PathMemo[A, B] {
   cache : Map[String, B]
-  eq_to_path : (A, A) -> Path[A]?
+  eq_to_path : (A, A) -> @hott_core.Path[A]?
 }
 
-pub fn[A, B] PathMemo::make(eq : (A, A) -> Path[A]?) -> PathMemo[A, B] {
+pub fn[A, B] PathMemo::make(eq : (A, A) -> @hott_core.Path[A]?) -> PathMemo[A, B] {
   { cache: Map::new(), eq_to_path: eq }
 }
 
@@ -142,8 +142,8 @@ pub fn[A, B] PathMemo::lookup_or_compute(
 /// 結構傳輸：沿等價 e : A ≃ B 傳輸結構 P : Type → Type，無需重證
 /// 原：對同構結構需手動重建 O(n²) 證明
 /// 優：transport along ua(e) 為 O(1) code 替換，編譯時消除
-pub fn[A, B] transport_structure(e : Equiv[A, B], tagA : TypeTag, tagB : TypeTag, struct_code : Int) -> Int {
-  let p = ua(e, tagA, tagB)
+pub fn[A, B] transport_structure(e : @hott_core.Equiv[A, B], tagA : @hott_core.TypeTag, tagB : @hott_core.TypeTag, struct_code : Int) -> Int {
+  let p = @hott_core.ua(e, tagA, tagB)
   cubical_transport(p, struct_code)
 }
 

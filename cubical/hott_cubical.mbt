@@ -289,6 +289,18 @@ pub fn cube_factorial(n : Int) -> Int {
   r
 }
 
+/// 二項式係數（自足版本：`structures` 裡的 `binomial` 是私有 helper，跨 package 不可見）
+fn cube_binomial(n : Int, k : Int) -> Int {
+  if k < 0 || k > n { return 0 }
+  let mut num = 1
+  let mut den = 1
+  for i in 0..<k {
+    num = num * (n - i)
+    den = den * (i + 1)
+  }
+  num / den
+}
+
 fn falling(m : Int, k : Int) -> Int {
   if k < 0 || k > m { return 0 }
   let mut r = 1
@@ -303,7 +315,7 @@ fn falling(m : Int, k : Int) -> Int {
 pub fn cube_hom_count_standard(m : Int, n : Int) -> Int {
   let mut t = 0
   for k in 0..=(if m < n { m } else { n }) {
-    t = t + binomial(n, k) * binomial(m, k) * pow2(n - k)
+    t = t + cube_binomial(n, k) * cube_binomial(m, k) * pow2(n - k)
   }
   t
 }
@@ -312,7 +324,7 @@ pub fn cube_hom_count_standard(m : Int, n : Int) -> Int {
 pub fn cube_hom_count_swaps(m : Int, n : Int) -> Int {
   let mut t = 0
   for k in 0..=(if m < n { m } else { n }) {
-    t = t + binomial(n, k) * falling(m, k) * pow2(n - k)
+    t = t + cube_binomial(n, k) * falling(m, k) * pow2(n - k)
   }
   t
 }
@@ -641,7 +653,7 @@ pub fn cubical_line(pf : CubicalProof) -> String {
 /// `n`-立方體的 `k` 維面數：C(n,k)·2^(n-k)（固定 n-k 個座標、其餘自由）
 pub fn cube_face_count(n : Int, k : Int) -> Int {
   if k < 0 || k > n { return 0 }
-  binomial(n, k) * pow2(n - k)
+  cube_binomial(n, k) * pow2(n - k)
 }
 
 /// **枚舉**（不套公式）全部 `k` 維面：簽名陣列中 `-1` = 自由座標，`0/1` = 固定值
@@ -732,7 +744,7 @@ pub fn gray_hamiltonian_check(n : Int) -> Bool {
 /// 左邊 = 路徑 `path : base =_U target`（glue），下邊 = 元素 `bottom ∈ El(base)`，
 /// 上邊 = `top ∈ El(target)`（`None` = 缺失，要求填充）。
 pub(all) struct ElBox {
-  path : UPath
+  path : @univalence.UPath
   bottom : Int
   top : Int?
 } derive(Debug)
@@ -750,7 +762,7 @@ pub(all) struct KanFill {
 pub fn kan_fill_el(box : ElBox) -> KanFill? {
   let n = box.path.lhs.card
   if box.bottom < 0 || box.bottom >= n { return None }
-  let filled = upath_transport(box.path, box.bottom)
+  let filled = @univalence.upath_transport(box.path, box.bottom)
   match box.top {
     Some(y) => if y == filled { Some({ top: filled, compatible: true }) } else { None }
     None => Some({ top: filled, compatible: true })
@@ -758,10 +770,10 @@ pub fn kan_fill_el(box : ElBox) -> KanFill? {
 }
 
 /// 二維 Kan 複合：沿 `q ∘ p` 的傳輸 = 兩次 1-維填充的串接（運輸的函子性）
-pub fn kan_compose(p : UPath, q : UPath, x : Int) -> Int? {
-  match upath_trans(p, q) {
+pub fn kan_compose(p : @univalence.UPath, q : @univalence.UPath, x : Int) -> Int? {
+  match @univalence.upath_trans(p, q) {
     Some(pq) => {
-      let direct = upath_transport(pq, x)
+      let direct = @univalence.upath_transport(pq, x)
       match kan_fill_el({ path: p, bottom: x, top: None }) {
         Some(f1) => {
           match kan_fill_el({ path: q, bottom: f1.top, top: None }) {
@@ -798,8 +810,8 @@ pub(all) struct KanProof {
 
 /// 對 `Fin card` 窮盡驗證 Kan 填充的全部定律
 pub fn kan_proof(card : Int) -> KanProof {
-  let a = fin("Fin" + card.to_string(), card)
-  let paths = upath_all(a, a)
+  let a = @univalence.fin("Fin" + card.to_string(), card)
+  let paths = @univalence.upath_all(a, a)
   let mut checks = 0
   let mut exists = true
   let mut unique_iff = true
@@ -814,9 +826,9 @@ pub fn kan_proof(card : Int) -> KanProof {
       checks = checks + 1
       match kan_fill_el({ path: p, bottom: x, top: None }) {
         Some(f) => {
-          if f.top != upath_transport(p, x) { universal = false }
-          if f.top != bij_apply(p.glue, x) { ua_beta = false }
-          match kan_fill_el({ path: upath_sym(p), bottom: f.top, top: None }) {
+          if f.top != @univalence.upath_transport(p, x) { universal = false }
+          if f.top != @univalence.bij_apply(p.glue, x) { ua_beta = false }
+          match kan_fill_el({ path: @univalence.upath_sym(p), bottom: f.top, top: None }) {
             Some(b) => if b.top != x { roundtrip = false }
             None => roundtrip = false
           }
@@ -831,10 +843,10 @@ pub fn kan_proof(card : Int) -> KanProof {
             None => false
           }
         }
-        if fillable != (y == upath_transport(p, x)) { unique_iff = false }
+        if fillable != (y == @univalence.upath_transport(p, x)) { unique_iff = false }
       }
       checks = checks + 1
-      if upath_transport(upath_refl(a), x) != x { refl_law = false }
+      if @univalence.upath_transport(@univalence.upath_refl(a), x) != x { refl_law = false }
     }
   }
   for p in paths {
@@ -843,9 +855,9 @@ pub fn kan_proof(card : Int) -> KanProof {
         checks = checks + 1
         match kan_compose(p, q, x) {
           Some(v) => {
-            if v != upath_transport(q, upath_transport(p, x)) { functorial = false }
-            match upath_trans(p, q) {
-              Some(pq) => if upath_transport(pq, x) != v { functorial = false }
+            if v != @univalence.upath_transport(q, @univalence.upath_transport(p, x)) { functorial = false }
+            match @univalence.upath_trans(p, q) {
+              Some(pq) => if @univalence.upath_transport(pq, x) != v { functorial = false }
               None => functorial = false
             }
           }
@@ -913,21 +925,21 @@ pub fn cterm_size(t : CTerm) -> Int {
 
 /// 語義値：路徑（= glue 雙射）或元素
 pub(all) enum CValue {
-  VPath(Bij)
+  VPath(@univalence.Bij)
   VElem(Int)
 } derive(Debug)
 
 ///|
 pub fn cvalue_eq(a : CValue, b : CValue) -> Bool {
   match (a, b) {
-    (VPath(p), VPath(q)) => bij_eq(p, q)
+    (VPath(p), VPath(q)) => @univalence.bij_eq(p, q)
     (VElem(i), VElem(j)) => i == j
     _ => false
   }
 }
 
 /// Lehmer 反排名：秩 `k` 的置換（`lehmer_code` 的逆；互逆由窮盡驗證）
-pub fn perm_from_lehmer(card : Int, rank : Int) -> Bij? {
+pub fn perm_from_lehmer(card : Int, rank : Int) -> @univalence.Bij? {
   if card < 0 { return None }
   let total = cube_factorial(card)
   if rank < 0 || rank >= total { return None }
@@ -949,7 +961,7 @@ pub fn perm_from_lehmer(card : Int, rank : Int) -> Bij? {
     }
     avail = next
   }
-  bij_make(card, fwd)
+  @univalence.bij_make(card, fwd)
 }
 
 /// Lehmer 排名/反排名互逆：`S_n ≅ [0,n!)` 的顯式雙射（窮盡驗證）
@@ -957,20 +969,20 @@ pub fn lehmer_bijection_check(card : Int) -> Bool {
   let total = cube_factorial(card)
   for k in 0..<total {
     match perm_from_lehmer(card, k) {
-      Some(b) => if lehmer_code(b) != k { return false }
+      Some(b) => if @univalence.lehmer_code(b) != k { return false }
       None => return false
     }
   }
   let seen : Array[Int] = []
-  for b in bij_all(card) {
-    let k = lehmer_code(b)
+  for b in @univalence.bij_all(card) {
+    let k = @univalence.lehmer_code(b)
     if k < 0 || k >= total { return false }
     for s in seen {
       if s == k { return false }
     }
     seen.push(k)
     match perm_from_lehmer(card, k) {
-      Some(b2) => if !bij_eq(b, b2) { return false }
+      Some(b2) => if !@univalence.bij_eq(b, b2) { return false }
       None => return false
     }
   }
@@ -987,16 +999,16 @@ pub fn ceval(t : CTerm, card : Int) -> CValue? {
         None => None
       }
     }
-    CRefl => Some(VPath(bij_id(card)))
+    CRefl => Some(VPath(@univalence.bij_id(card)))
     CSym(p) => {
       match ceval(p, card) {
-        Some(VPath(b)) => Some(VPath(bij_inv(b)))
+        Some(VPath(b)) => Some(VPath(@univalence.bij_inv(b)))
         _ => None
       }
     }
     CTrans(p, q) => {
       match (ceval(p, card), ceval(q, card)) {
-        (Some(VPath(bp)), Some(VPath(bq))) => Some(VPath(bij_compose(bq, bp)))
+        (Some(VPath(bp)), Some(VPath(bq))) => Some(VPath(@univalence.bij_compose(bq, bp)))
         _ => None
       }
     }
@@ -1010,7 +1022,7 @@ pub fn ceval(t : CTerm, card : Int) -> CValue? {
     // transport：Kan 填充（glue 消除規則）
     CTransport(p, x) => {
       match (ceval(p, card), ceval(x, card)) {
-        (Some(VPath(b)), Some(VElem(i))) => Some(VElem(bij_apply(b, i)))
+        (Some(VPath(b)), Some(VElem(i))) => Some(VElem(@univalence.bij_apply(b, i)))
         _ => None
       }
     }
@@ -1072,7 +1084,7 @@ pub fn cterm_show(t : CTerm) -> String {
 fn reify(v : CValue) -> CTerm {
   match v {
     VElem(i) => CElem(i)
-    VPath(b) => if bij_is_id(b) { CRefl } else { CUa(CSigma(lehmer_code(b))) }
+    VPath(b) => if @univalence.bij_is_id(b) { CRefl } else { CUa(CSigma(@univalence.lehmer_code(b))) }
   }
 }
 
@@ -1138,8 +1150,8 @@ pub fn crewrite_step(t : CTerm, card : Int) -> (CTerm, Bool) {
     CSym(CUa(CSigma(k))) => {
       match perm_from_lehmer(card, k) {
         Some(b) => {
-          let c = bij_inv(b)
-          let r = if bij_is_id(c) { CRefl } else { CUa(CSigma(lehmer_code(c))) }
+          let c = @univalence.bij_inv(b)
+          let r = if @univalence.bij_is_id(c) { CRefl } else { CUa(CSigma(@univalence.lehmer_code(c))) }
           if cterm_eq(r, t) { (t, false) } else { (r, true) }
         }
         None => (t, false)
@@ -1150,8 +1162,8 @@ pub fn crewrite_step(t : CTerm, card : Int) -> (CTerm, Bool) {
     CTrans(CUa(CSigma(k)), CUa(CSigma(l))) => {
       match (perm_from_lehmer(card, k), perm_from_lehmer(card, l)) {
         (Some(bk), Some(bl)) => {
-          let c = bij_compose(bl, bk)
-          let r = if bij_is_id(c) { CRefl } else { CUa(CSigma(lehmer_code(c))) }
+          let c = @univalence.bij_compose(bl, bk)
+          let r = if @univalence.bij_is_id(c) { CRefl } else { CUa(CSigma(@univalence.lehmer_code(c))) }
           if cterm_eq(r, t) { (t, false) } else { (r, true) }
         }
         _ => (t, false)
@@ -1159,7 +1171,7 @@ pub fn crewrite_step(t : CTerm, card : Int) -> (CTerm, Bool) {
     }
     CUa(CSigma(k)) => {
       match perm_from_lehmer(card, k) {
-        Some(b) => if bij_is_id(b) { (CRefl, true) } else { (t, false) }
+        Some(b) => if @univalence.bij_is_id(b) { (CRefl, true) } else { (t, false) }
         None => (t, false)
       }
     }

@@ -1,5 +1,13 @@
 import {
   "axiom/axiom" @axiom,
+  "axiom/axiom/hott_core" @hott_core,
+  "axiom/axiom/hott_hits" @hott_hits,
+  "axiom/axiom/structures" @structures,
+  "axiom/axiom/hott_redefine" @hott_redefine,
+  "axiom/axiom/univalence" @univalence,
+  "axiom/axiom/cubical" @cubical,
+  "axiom/axiom/hott_theorems" @hott_theorems,
+  "axiom/axiom/hott_algorithms" @hott_algorithms,
 }
 
 pkgtype(kind: "executable")

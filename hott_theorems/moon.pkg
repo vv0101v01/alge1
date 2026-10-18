@@ -1,0 +1,7 @@
+// package axiom/axiom/hott_theorems — HoTT 新定理 N1-N6
+import {
+  "axiom/axiom/hott_core" @hott_core,
+  "axiom/axiom/hott_hits" @hott_hits,
+  "axiom/axiom/hott_redefine" @hott_redefine,
+  "axiom/axiom/univalence" @univalence,
+}

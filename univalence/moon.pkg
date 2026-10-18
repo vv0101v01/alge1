@@ -1,0 +1,4 @@
+// package axiom/axiom/univalence — 單值性：公理 → 定理（Fin/Bij/UPath + 窮盡證明 + 推論）
+import {
+  "axiom/axiom/hott_core" @hott_core,
+}

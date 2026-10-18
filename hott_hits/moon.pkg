@@ -1,0 +1,4 @@
+// package axiom/axiom/hott_hits — 高歸納類型：Interval / Circle / Susp / Pushout / PropTrunc / Quot
+import {
+  "axiom/axiom/hott_core" @hott_core,
+}

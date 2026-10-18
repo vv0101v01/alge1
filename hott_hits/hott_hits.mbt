@@ -11,12 +11,12 @@ pub fn Interval::left() -> Interval { { tag: "0" } }
 
 pub fn Interval::right() -> Interval { { tag: "1" } }
 
-pub fn interval_seg() -> Path[Interval] {
+pub fn interval_seg() -> @hott_core.Path[Interval] {
   { lhs: Interval::left(), rhs: Interval::right(), code: 1 }
 }
 
 /// 區間歸納：要給 I → X，只需給路徑 p : Path[X](x0,x1)
-pub fn[X] interval_rec(x0 : X, x1 : X, seg_case : Path[X]) -> (Interval) -> X {
+pub fn[X] interval_rec(x0 : X, x1 : X, seg_case : @hott_core.Path[X]) -> (Interval) -> X {
   fn(i) {
     if i == Interval::left() { x0 } else if i == Interval::right() { x1 } else { // path case
       // 沿 seg 的傳輸選 seg_case 的中間點（以 code 模擬）
@@ -31,13 +31,13 @@ pub(all) struct Circle { tag : String } derive(Eq, Debug)
 
 pub fn Circle::base() -> Circle { { tag: "base" } }
 
-pub fn circle_loop() -> Path[Circle] {
+pub fn circle_loop() -> @hott_core.Path[Circle] {
   { lhs: Circle::base(), rhs: Circle::base(), code: 1 }
 }
 
 /// 圓消除：給出 c : X 與 loop_case : Path[X](c,c) 可得 f : S¹ → X
 /// 計算律：f(base)=c, ap_f(loop)=loop_case
-pub fn[X] circle_rec(base_case : X, loop_case : Path[X]) -> (Circle) -> X {
+pub fn[X] circle_rec(base_case : X, loop_case : @hott_core.Path[X]) -> (Circle) -> X {
   fn(c) {
     ignore(c)
     ignore(loop_case)
@@ -45,7 +45,7 @@ pub fn[X] circle_rec(base_case : X, loop_case : Path[X]) -> (Circle) -> X {
   }
 }
 
-pub fn[X] circle_rec_beta_loop(base_case : X, loop_case : Path[X]) -> Path[X] {
+pub fn[X] circle_rec_beta_loop(base_case : X, loop_case : @hott_core.Path[X]) -> @hott_core.Path[X] {
   // ap_{circle_rec}(loop) = loop_case 的見證
   loop_case
 }
@@ -59,11 +59,11 @@ pub(all) enum Susp[A] {
   South
 } derive(Eq, Debug)
 
-pub fn[A] merid(a : A) -> Path[Susp[A]] {
+pub fn[A] merid(a : A) -> @hott_core.Path[Susp[A]] {
   { lhs: North, rhs: South, code: 1 }
 }
 
-pub fn[A, X] susp_rec(north_case : X, south_case : X, merid_case : (A) -> Path[X]) -> (Susp[A]) -> X {
+pub fn[A, X] susp_rec(north_case : X, south_case : X, merid_case : (A) -> @hott_core.Path[X]) -> (Susp[A]) -> X {
   fn(s) {
     match s {
       North => north_case
@@ -98,7 +98,7 @@ pub fn[A, B, C] pushout_inl(b : B) -> Pushout[A, B, C] { { tag: "inl", left_val:
 
 pub fn[A, B, C] pushout_inr(c : C) -> Pushout[A, B, C] { { tag: "inr", left_val: None, right_val: Some(c) } }
 
-pub fn[A, B, C] pushout_glue(a : A, span : Span[A, B, C]) -> Path[Pushout[A, B, C]] {
+pub fn[A, B, C] pushout_glue(a : A, span : Span[A, B, C]) -> @hott_core.Path[Pushout[A, B, C]] {
   let b = (span.left_map)(a)
   let c = (span.right_map)(a)
   { lhs: pushout_inl(b), rhs: pushout_inr(c), code: 1 }
@@ -109,12 +109,12 @@ pub(all) struct PropTrunc[A] { val : A; code : Int } derive(Debug)
 
 pub fn[A] prop_trunc_in(a : A) -> PropTrunc[A] { { val: a, code: 0 } }
 
-pub fn[A] prop_trunc_path(x : PropTrunc[A], y : PropTrunc[A]) -> Path[PropTrunc[A]] {
+pub fn[A] prop_trunc_path(x : PropTrunc[A], y : PropTrunc[A]) -> @hott_core.Path[PropTrunc[A]] {
   { lhs: x, rhs: y, code: 1 }
 }
 
 /// 命題截斷消除：若 B 為命題，則 (∥A∥ → B) ≃ (A → B)
-pub fn[A, B] prop_trunc_rec(is_prop_b : IsProp[B], f : (A) -> B) -> (PropTrunc[A]) -> B {
+pub fn[A, B] prop_trunc_rec(is_prop_b : @hott_core.IsProp[B], f : (A) -> B) -> (PropTrunc[A]) -> B {
   fn(t) { f(t.val) }
 }
 
@@ -126,7 +126,7 @@ pub(all) struct Quotient[A] {
 
 pub fn[A] quotient_in(a : A) -> Quotient[A] { { cls: a, rel_code: 0 } }
 
-pub fn[A] quotient_rel(a : A, b : A, _rel : Bool) -> Path[Quotient[A]] {
+pub fn[A] quotient_rel(a : A, b : A, _rel : Bool) -> @hott_core.Path[Quotient[A]] {
   { lhs: quotient_in(a), rhs: quotient_in(b), code: 1 }
 }
 
@@ -137,7 +137,7 @@ pub fn circle_encode(c : Circle, base_loops : Int) -> Int {
   base_loops
 }
 
-pub fn circle_decode(n : Int) -> Path[Circle] {
+pub fn circle_decode(n : Int) -> @hott_core.Path[Circle] {
   // 整數解碼為繞 n 圈的路徑
   { lhs: Circle::base(), rhs: Circle::base(), code: n }
 }
