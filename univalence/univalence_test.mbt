@@ -209,3 +209,27 @@ test "C5 有限宇宙是 1-類型（相等可判定 ⇒ 無高階結構）" {
   }
 }
 
+test "hott: equiv and ua (定理化：ua 不再是公理)" {
+  let e = @hott_core.Equiv::make(fn(x : Int) -> Int { x }, fn(x : Int) -> Int { x })
+  assert_eq(e.is_equiv(), true)
+  let tagA = @hott_core.TypeTag("A")
+  let tagB = @hott_core.TypeTag("B")
+  let pathAB = @hott_core.ua(e, tagA, tagB)
+  // 舊實作憑空加了常數 10（公理）；現在 code = 等價自身的虧損碼，已驗證等價 ⇒ 0（原子路徑）
+  assert_eq(pathAB.code, @hott_core.equiv_defect(e))
+  assert_eq(pathAB.code, 0)
+  // uaη：ua(idToEquiv(refl A)) 結構上就是 refl A
+  assert_true(@hott_core.ua_eta_legacy(fn(x : Int) -> Int { x }, fn(x : Int) -> Int { x }, tagA))
+  // uaβ：transport along ua(e) 定義上就是 e.to（glue 消除規則），見證為 refl
+  let beta = @univalence.ua_beta(e, tagA, tagB, 7)
+  assert_eq(beta.lhs, 7)
+  assert_eq(beta.rhs, 7)
+  assert_eq(beta.code, 0)
+  // 虧損非 0 的「假等價」不會被當成合法路徑（code > 0 可被檢測出來）
+  let bad : @hott_core.Equiv[Int, Int] = { to: fn(x) { x }, from: fn(x) { x }, left_inv_code: 3, right_inv_code: 4 }
+  assert_eq(@hott_core.ua(bad, tagA, tagB).code, 7)
+  assert_eq(@univalence.ua_beta(bad, tagA, tagB, 1).code, 7)
+  // 完整的窮盡證明見 univalence_theorem_test.mbt
+  assert_eq(@univalence.univalence_axiom_count(), 0)
+  assert_true(@univalence.univalence_holds(3))
+}

@@ -1,8 +1,11 @@
 # 有限立方體演算法 —— 設計、推導與可執行驗證報告
 
-> **對應程式碼**：`hott_cubical.mbt`（K1 立方體範疇 / K2 Kan 填充 / K3 cubical NBE）、
-> `hott_algorithms.mbt`（H1、H7 的誠實化）、`cubical_test.mbt`（12 個測試）
-> **命令**：`moon test`（51 passed）· `moon run cmd/main`（`cubical:` 行）
+> **對應程式碼**：`cubical/hott_cubical.mbt`（K1 立方體範疇 / K2 Kan 填充 / K3 cubical NBE）、
+> `hott_algorithms/hott_algorithms.mbt`（H1、H7 的誠實化）、`cubical/cubical_test.mbt`（12 個測試）
+> **命令**：`moon test cubical`（18 passed：12 黑盒 + 6 個 README 文件測試）· `moon test`（全庫 112 passed）· `moon run cmd/main`（`cubical:` 行）
+> **本文寫成時**（commit `d28105a`）全庫係 51 passed / 101 warnings；之後做咗 **package 重構**
+> （一個資料夾 = 一個 MoonBit package，每個 package 有自己的 `README.mbt.md` + 可運行例子），
+> 程式碼與數學內容**完全冇變**，只係路徑由 `hott_cubical.mbt` 變成 `cubical/hott_cubical.mbt`。
 > **公理數：0** —— 每一條布林值都由窮盡計算得出，沒有一欄寫死 `true`
 > **前置閱讀**：`docs/UNIVALENCE.md`（單值性：公理 → 定理）。本文的 K2 就是該文 §8
 > 「後續可做」第一項（cubical 檢查器：區間 + Kan 填充）的完成報告。
@@ -293,7 +296,7 @@ pub fn kan_fill_el(box : ElBox) -> KanFill? {
 | 4 | 24 | 2,880 |
 | 5 | 120 | 76,200 |
 
-七條定律在 card ≤ 5 全部 `true`（`cubical_test.mbt` 的 K2a）；K2b 另外驗證
+七條定律在 card ≤ 5 全部 `true`（`cubical/cubical_test.mbt` 的 K2a）；K2b 另外驗證
 **不相容的盒沒有填充體**（回傳 `None`）與越界元素被拒；K2c 驗證 Lehmer 排名/反排名
 是 `S_n ≅ [0,n!)` 的顯式雙射（K3 用它把等價編成項）。
 
@@ -362,7 +365,7 @@ R1 無守衛：t → σ0，而 ceval(σ0) = Some(VPath id)
 而且 `cnorm` 的輸出真的是不動點（`normal_forms`）。
 
 > 這條反例是本報告最想留下的東西：**窮盡驗證不是儀式，它抓到了真實的 bug**。
-> 回歸測試見 `cubical_test.mbt` 的 K3c（`crewrite(transport(refl, σ0)) = 0 步`）。
+> 回歸測試見 `cubical/cubical_test.mbt` 的 K3c（`crewrite(transport(refl, σ0)) = 0 步`）。
 
 ### 4.5 終止性：勢函數
 
@@ -442,7 +445,7 @@ transport(ua(σ3), el(1))  ⟶  transport(σ3, el(1))  ⟶  el(2)          （2 
 `nbe_holds(3,1,6,8)`、`nbe_holds(2,2,2,8)`、`nbe_proof(4,1,4,8)` 全 `true`，
 共 **7,385 + 230 + 189 = 7,804** 個項、**36,885** 次原子比較。
 
-### 5.3 測試清單（`cubical_test.mbt`，12 個）
+### 5.3 測試清單（`cubical/cubical_test.mbt`，12 個）
 
 | 測試 | 內容 |
 |---|---|
@@ -463,11 +466,16 @@ transport(ua(σ3), el(1))  ⟶  transport(σ3, el(1))  ⟶  el(2)          （2 
 
 ```bash
 export PATH="$HOME/.moon/bin:$PATH"     # moon 0.1.20261012 / moonc v0.10.15
-moon check                              # 0 errors, 101 warnings
-moon test                               # Total tests: 51, passed: 51, failed: 0
+moon check                              # 0 errors, 113 warnings
+moon test                               # Total tests: 112, passed: 112, failed: 0
+moon test cubical                       # Total tests: 18（12 黑盒 + 6 個 cubical/README.mbt.md 的 mbt check）
 moon run cmd/main                       # 見下面的 cubical: 行
 moon build --target wasm-gc,js,native   # 三個目標皆 0 errors
 ```
+
+> 本文寫成時（commit `d28105a`，扁平檔案佈局）的實測值為 `moon check` 0 errors / 101 warnings、
+> `moon test` 51 passed；package 重構之後（commit `5af71c5` 起）變成上面的數字，
+> **K1–K3 的數學內容與實測數據（checks、項數、定律）完全不變**。
 
 > **不要跑 `moon fmt`**（`AGENTS.md` 的慣例在此版本不安全）：實測 `moonfmt` 會把
 > 型別標註裡的 `Int` 改寫成 `Int32`（連獨立 scratch 檔也一樣），那是**語義變更**而非排版；
@@ -489,7 +497,7 @@ cubical: axioms=0 K1(dim<=3 checks=93767 C1C2C3=true assoc=true count=true gen=t
 | `cubical_transport(p, v)` | `v + p.code` | `v + p.code`（**不變**） | 保留為 code 直線族的特例，文件改為誠實聲明 + 指向 `cubical_transport_kan` |
 | `axiom_test.mbt` | 斷言 `judgmental_eq(...) = true` | 斷言 `false` + `normalize` 為恒等 + `cubical_kan_demo() = "2"` | 跟隨修正 |
 
-新增 API（`hott_cubical.mbt`，約 60 個）：`Coord`/`CubeMap`/`cubemap_*`、
+新增 API（`cubical/hott_cubical.mbt`，約 60 個）：`Coord`/`CubeMap`/`cubemap_*`、
 `face_map`/`degen_map`/`swap_map`、`cube_points`/`cube_points_gray`/`gray_hamiltonian_check`、
 `cube_face_count`/`cube_faces_enum`/`cube_euler`/`cube_euler_enum_check`、
 `cubemap_all_standard`/`_with_swaps`/`_full`、`cube_hom_count_*`、`cubemap_generated`、
@@ -498,7 +506,7 @@ cubical: axioms=0 K1(dim<=3 checks=93767 C1C2C3=true assoc=true count=true gen=t
 `CTerm`/`CValue`/`ceval`/`cnorm`/`crewrite*`/`judgmental_eq_ct`/`cterms_upto`/`cterm_show`/
 `cterm_size`/`cterm_sym_count`/`cterm_phi`/`phi_lt`/`creassoc`/`nbe_proof`/`nbe_holds`；
 `perm_from_lehmer`/`lehmer_bijection_check`/`cube_factorial`/`cubical_axiom_count`。
-`hott_algorithms.mbt` 新增 `cubical_transport_kan`、`cubical_kan_demo`；
+`hott_algorithms/hott_algorithms.mbt` 新增 `cubical_transport_kan`、`cubical_kan_demo`；
 `axiom.mbt` 新增 `cubical_demo()`；`cmd/main/main.mbt` 新增 cubical 區塊。
 
 ---

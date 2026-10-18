@@ -59,7 +59,7 @@ pre code{background:transparent;padding:0;color:inherit}
     <h1>以同倫類型論為統一根基，<br/>再定義 Vect<sub>k</sub> · Topos · 群胚 · 2-群，衍生 HoTT 新定理與算法</h1>
     <p>類型即空間 · 相等即路徑 · 等價即相等 · 編譯時即證明，運行時即零成本。Path/Equiv/HIT/Trunc 全泛型單態化，內聯為 Int 加法。</p>
     <div class="grid">
-      <div class="card"><b>編譯保證</b><div>0 errors · 51 passed</div><div class="small">19 原有 + 7 HoTT + 13 單值性定理 + 12 有限立方體 · 公理數 0 · 0 運行時開銷</div></div>
+      <div class="card"><b>編譯保證</b><div>0 errors · 112 passed</div><div class="small">57 個手寫黑盒/白盒測試 + 55 個 README 的 mbt check 文件測試 · 9 個 package · 公理數 0 · 0 運行時開銷</div></div>
       <div class="card"><b>HoTT 統一</b><div>(A=B) ≃ (A≃B)</div><div class="small">Univalence + HITs + Cubical</div></div>
       <div class="card"><b>新定理</b><div>N1 π₁(S¹)=ℤ · N3 Freudenthal</div><div class="small">Encode-Decode · Blakers-Massey</div></div>
       <div class="card"><b>立方體演算法</b><div>K1 □範疇 · K2 Kan填充 · K3 NBE</div><div class="small">dim≤4 · card≤5 · 7,804 項 · 全部窮盡驗證</div></div>
@@ -101,7 +101,7 @@ Path[A] code:Int  Equiv[A,B] to/from:Int→Int  Trunc[A] tag:Int
     </div>
   </div>
 
-  <h2 id="s1">1 · HoTT 核心 <span class="kw">hott_core.mbt</span> <span class="kw kw2">Path / Equiv / h-Level</span></h2>
+  <h2 id="s1">1 · HoTT 核心 <span class="kw">hott_core/hott_core.mbt</span> <span class="kw kw2">Path / Equiv / h-Level</span></h2>
   <div class="card hott">
     <div class="grid2">
       <div>
@@ -135,7 +135,7 @@ pub fn[A] trunc_rec[B](t:Trunc[A], f:(A)->B)->B { f(t.repr) } // B 須為 n-類�
     </div>
   </div>
 
-  <h2 id="s2">2 · 高歸納類型 HITs <span class="kw">hott_hits.mbt</span></h2>
+  <h2 id="s2">2 · 高歸納類型 HITs <span class="kw">hott_hits/hott_hits.mbt</span></h2>
   <div class="card hott">
     <table class="table">
       <tr><th>HIT</th><th>點</th><th>路徑/高構造</th><th>層次</th><th>消除律</th></tr>
@@ -172,7 +172,7 @@ encode∘decode = id , decode∘encode = id  ⇒  Ω(S¹) ≃ ℤ</div>
     </div>
   </div>
 
-  <h2 id="s3">3 · 單值性 Univalence —— <b>定理</b>（原公理已降級） <span class="kw">hott_univalence_theorem.mbt</span></h2>
+  <h2 id="s3">3 · 單值性 Univalence —— <b>定理</b>（原公理已降級） <span class="kw">univalence/hott_univalence_theorem.mbt</span></h2>
   <div class="card hott">
     <div class="formula hl2">(A =_U B)  ≃  (A ≃ B)         —  恆等即等價   【定理，非公理】
 idToEquiv : (A=B) → (A≃B)  為等價，擬逆 ua : (A≃B) → (A=B) 由 glue 構造
@@ -187,7 +187,7 @@ tri: 三角恆等式 ⇒ isEquiv(idToEquiv)    π₁(U_fin, Fin n) ≅ S_n    |F
       <code>univalence_proof(n)</code> 再對 n = 0..6 <b>窮盡</b>枚舉全部 n! 條路徑與 n! 個等價，十項定律
       （基數 / η / ε / β / 單射 / 滿射 / refl-sym-trans / 三角 / 可判定 / Lehmer 影子單射）全部由計算得出，
       無一欄位寫死 <code>true</code> —— n=6 共 <b>1,571,761</b> 次原子比較，<code>holds=true</code>。
-      完整證明報告：<code>docs/UNIVALENCE.md</code>；機器檢查：<code>univalence_theorem_test.mbt</code>（13 個測試）。
+      完整證明報告：<code>docs/UNIVALENCE.md</code>；機器檢查：<code>univalence/univalence_test.mbt</code>（13 個測試）。
     </div>
     <div class="grid2">
       <div>
@@ -222,7 +222,7 @@ pub fn funext_happly_laws(card:Int) -> Bool              // (nⁿ)² 對函數�
     </div>
   </div>
 
-  <h2 id="s4">4 · 範疇論 HoTT 化 <span class="kw">hott_redefine.mbt</span></h2>
+  <h2 id="s4">4 · 範疇論 HoTT 化 <span class="kw">hott_redefine/hott_redefine.mbt</span></h2>
   <div class="card">
     <p>將集合論範疇提升為 <b>HoTT 範疇</b>（同倫1-範疇 / ∞-範疇的 1-截斷）：對象為類型，態射為函數，相等即路徑，保持路徑即保持同構。</p>
     <pre><code>pub struct HoTTCat { obj_tag:TypeTag; hlevel:HLevel; hom_truncated:Bool }
@@ -266,7 +266,7 @@ pub fn is_groupoid_hott(l:HLevel)->Bool { l==GroupoidLevel }</code></pre></div>
     <div class="card"><h3>2-群 → 2-類型</h3><div class="formula">crossed_to_hott(cm) : B(G,H)   2-截斷類型，π₀=Coker∂, π₁=Ker∂</div><pre><code>pub fn crossed_to_hott(cm:CrossedModule)->(String,String){ ("B({cm.g_order},{cm.h_order})","CrossedMod→HoTT 2-Type") }</code></pre></div>
   </div>
 
-  <h2 id="s9">9 · 新定理 N1–N6 <span class="kw">hott_new_theorems.mbt</span></h2>
+  <h2 id="s9">9 · 新定理 N1–N6 <span class="kw">hott_theorems/hott_new_theorems.mbt</span></h2>
   <div class="card" style="overflow:auto">
     <table class="table">
       <tr><th>#</th><th>定理</th><th>內容</th><th>證明手段</th><th>代碼</th></tr>
@@ -282,7 +282,7 @@ pub fn is_groupoid_hott(l:HLevel)->Bool { l==GroupoidLevel }</code></pre></div>
   檢驗: pi1_s1_is_int() 遍歷 [-10,10] 互逆成功；synthetic_pi(1,1) = "ℤ"</div>
   </div>
 
-  <h2 id="s10">10 · 新算法 H1–H7 <span class="kw">hott_algorithms.mbt</span> <span class="kw kw2">零成本</span></h2>
+  <h2 id="s10">10 · 新算法 H1–H7 <span class="kw">hott_algorithms/hott_algorithms.mbt</span> <span class="kw kw2">零成本</span></h2>
   <div class="card" style="overflow:auto">
     <table class="table">
       <tr><th>#</th><th>算法</th><th>樸素 → 優化</th><th>HoTT 原理</th><th>函數</th></tr>
@@ -324,16 +324,16 @@ pub fn pi_injective(a_code:Int,b_code:Int,a2:Int,b2:Int)->Bool{
   if a_code != a2 || b_code != b2 { false } else { true }  // 由範式比對推出
 }</code></pre>
         <p class="small">H7 的 <code>Term</code> 只是 <code>(code,tag)</code> 配對，沒有 λ/Π/ua 結構，因此「歸一化」只能是恒等。
-        需要真正的可判定判斷相等請用 <code>judgmental_eq_ct</code>（<code>hott_cubical.mbt</code> K3），
+        需要真正的可判定判斷相等請用 <code>judgmental_eq_ct</code>（<code>cubical/hott_cubical.mbt</code> K3），
         它在有限模型上被驗證為等價關係且<b>健全又完備</b>。</p>
       </div>
     </div>
   </div>
 
-  <h2 id="s10b">10b · 有限立方體演算法 K1–K3 <span class="kw">hott_cubical.mbt</span> <span class="kw kw2">公理數 0 · 窮盡驗證</span></h2>
+  <h2 id="s10b">10b · 有限立方體演算法 K1–K3 <span class="kw">cubical/hott_cubical.mbt</span> <span class="kw kw2">公理數 0 · 窮盡驗證</span></h2>
   <div class="card" style="overflow:auto">
     <p class="small">H1/H7 的「假 cubical」被換成真正的演算法。方法與單值性定理相同：<b>每條定律都化為有限計算並窮盡驗證</b>，沒有一欄寫死 <code>true</code>。
-    完整推導見 <code>docs/CUBICAL.md</code>，測試見 <code>cubical_test.mbt</code>（12 個）。</p>
+    完整推導見 <code>docs/CUBICAL.md</code>，測試見 <code>cubical/cubical_test.mbt</code>（12 個）。</p>
     <table class="table">
       <tr><th>部分</th><th>內容</th><th>驗證範圍</th><th>原子比較</th><th>結果</th></tr>
       <tr><td><b>K1</b></td><td>有限立方體範疇 □：態射 = 座標函數，生成元 ∂<sub>i,ε</sub>/σ<sub>i</sub>/s<sub>i</sub>，複合 = 代入</td><td>dim ≤ 4（結合律 dim ≤ 2）</td><td><b>4,172,976</b></td><td>9 條定律全 <span class="complex-imp">true</span></td></tr>
@@ -399,7 +399,7 @@ pub fn nbe_proof(card,depth,sigma_limit,max_steps:Int) -> NbeProof</code></pre>
       （<code>ceval = Some(VPath id)</code>）—— 語義從「無値」變「有値」，重寫不健全。
       修法：每條規則只在 redex 於模型中<b>良型</b>時開火（<code>ceval_is_elem</code> / <code>ceval_is_path</code>）。
       修好後 <code>rewrite_sound</code> 對全部 7,385 個枚舉項成立，且 <code>cnorm</code> 的輸出真的是不動點。
-      回歸測試：<code>cubical_test.mbt</code> K3c。</p>
+      回歸測試：<code>cubical/cubical_test.mbt</code> K3c。</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <span class="tag">cubical_axiom_count() = 0</span><span class="tag">K1 dim≤4 · 4,172,976 checks</span><span class="tag">K2 card≤5 · uaβ = true</span><span class="tag">K3 7,804 項 · 強正規化</span><span class="tag">χ(Qⁿ) = 1</span><span class="tag">Gray Hamiltonian ✓</span>
@@ -475,48 +475,57 @@ cubical: axioms=0 K1(dim<=3 checks=93767 C1C2C3=true assoc=true count=true gen=t
 
 === 零成本保證：所有泛型（含 Path/Equiv/HIT）在編譯時單態化，無虛表 ===</code></pre>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <span class="tag">moon check 0 errors · 101 warns</span><span class="tag">moon test 51 passed (26 + 13 單值性 + 12 立方體)</span><span class="tag">moon build wasm,wasm-gc,js,native ✓</span><span class="tag">moon run cmd/main ✓</span><span class="tag">HoTT 7 文件零成本</span><span class="tag">公理數 0</span>
+      <span class="tag">moon check 0 errors · 113 warns</span><span class="tag">moon test 112 passed（57 手寫 + 55 README 文件測試）</span><span class="tag">moon build wasm,wasm-gc,js,native ✓</span><span class="tag">moon run cmd/main ✓</span><span class="tag">9 個 package 各自有 README</span><span class="tag">公理數 0</span>
     </div>
   </div>
 
   <h2 id="s13">13 · 包結構</h2>
   <div class="card">
-    <pre><code>axiom/
-├── moon.mod / moon.pkg                         # 新 DSL, import { "pkg" @alias }
-├── hott_core.mbt          ★ HoTT 核心  Path/Equiv/ua(影子)/equiv_defect/Univalence/HLevel/Trunc (Int code)
-├── hott_hits.mbt          ★ HITs     Interval/Circle/Susp/Pushout/PropTrunc/Quotient + encode-decode
-├── hott_univalence_theorem.mbt ★ 單值性定理  Fin/Bij/UPath(glue)/univalence_proof/窮盡推論(funext·propext·SIP)
-├── hott_univalence.mbt    ★ 推論API  funext/happly/prop_ext/SIP/ua_beta + *_is_theorem 證明入口
-├── hott_redefine.mbt      ★ 再定義   HoTTCat/FreeHoTT/FlatHoTT/VectHoTT/InfTopos/LinearHoTT/球面/餘切/群胚
-├── hott_new_theorems.mbt  ★ 新定理 N1-N6  π₁S¹/Freudenthal/截斷萬有/SIP/Blakers-Massey/Whitehead + synthetic_pi
-├── hott_cubical.mbt       ★ 有限立方體演算法 K1-K3  □範疇(∂/σ/複合/計數/生成) · Kan填充(盒條件/uaβ) · cubical NBE(R1-R12/勢函數)
-├── hott_algorithms.mbt    ★ 新算法 H1-H7 Kan填充/HITQueue/truncation/synthetic/PathMemo/transport/NBE（H1·H7 已誠實化）
-├── category.mbt            範疇/函子/自然變換/Yoneda
-├── functor.mbt             等價/自由/平坦（被 HoTT 再定義）
-├── vect.mbt                Vectₖ, FieldOps, 稀疏/稠密, JL 投影（HoTT 視為 Set）
-├── topos.mbt               Top, Site, Sheaf, Ω（HoTT 視為 ∞-Topos）
-├── linear.mbt              ⊗, ⊸, &, ⊕, !, ProofNet（HoTT 線性模態）
-├── homotopy.mbt            SSet, ModelCat, AnimatedRing, 餘切複形（合成化）
-├── groupoid.mbt            群胚, 2-群, 交叉模（HoTT 1/2-類型）
-├── algorithms.mbt          A1-A10 十大優化（與 H1-H7 互補）
-├── axiom.mbt               入口：demo_pipeline + hott_demo/hits_demo/new_theorems/hott_algorithms/redefine/univalence/cubical
-├── axiom_test.mbt          26 黑盒定理測試（19+7 HoTT）
-├── univalence_theorem_test.mbt  13 測試：單值性定理可執行證明（U0-U7, C1-C5）
-├── cubical_test.mbt        12 測試：有限立方體演算法可執行證明（K0-K3c, H1）
-├── docs/UNIVALENCE.md      單值性：公理 → 定理 完整證明報告
-├── docs/CUBICAL.md         有限立方體演算法：設計、推導與可執行驗證報告
-├── axiom_wbtest.mbt        白盒不變量測試
-├── README.mbt.md           本文檔（HoTT 重構版）
-├── docs/index.html         可視化報告（本頁，含 HoTT 附錄）
-└── cmd/main/main.mbt       HoTT 演示入口（17 段輸出）
-</code></pre>
+    <pre><code>axiom/                                          # moon.mod: name = "axiom/axiom" · 一個資料夾 = 一個 package
+├── hott_core/            ★ @hott_core      Path/Equiv/ua(影子)/equiv_defect/HLevel/Trunc（根，無依賴）
+│   ├── hott_core.mbt  core_test.mbt  README.mbt.md  moon.pkg
+├── hott_hits/            ★ @hott_hits      Interval/Circle/Susp/Pushout/PropTrunc/Quotient + 消除子
+│   ├── hott_hits.mbt  hits_test.mbt  README.mbt.md  moon.pkg
+├── structures/           ★ @structures     原有 8 檔數學結構 + 衍生演算法 A1-A10（根，無依賴）
+│   ├── category.mbt  functor.mbt  vect.mbt  topos.mbt  linear.mbt
+│   ├── homotopy.mbt  groupoid.mbt  algorithms.mbt
+│   ├── structures_test.mbt（黑盒）  structures_wbtest.mbt（白盒）  README.mbt.md  moon.pkg
+├── univalence/           ★ @univalence     單值性：公理 → 定理（Fin/Bij/UPath(glue)/12 條定律窮盡驗證）
+│   ├── hott_univalence_theorem.mbt  hott_univalence.mbt  univalence_test.mbt  README.mbt.md  moon.pkg
+├── cubical/              ★ @cubical        有限立方體演算法 K1-K3（□範疇 · Kan填充 · cubical NBE + 終止性）
+│   ├── hott_cubical.mbt  cubical_test.mbt  README.mbt.md  moon.pkg
+├── hott_redefine/        ★ @hott_redefine  用 HoTT 再定義 structures 的每個結構（h-層次化）
+│   ├── hott_redefine.mbt  redefine_test.mbt  README.mbt.md  moon.pkg
+├── hott_theorems/        ★ @hott_theorems  新定理 N1-N6（π₁S¹/funext/Freudenthal/截斷萬有/SIP/BM-Whitehead）
+│   ├── hott_new_theorems.mbt  theorems_test.mbt  README.mbt.md  moon.pkg
+├── hott_algorithms/      ★ @hott_algorithms 新算法 H1-H7（H1·H7 已誠實化並指向 cubical/）
+│   ├── hott_algorithms.mbt  algorithms_test.mbt  README.mbt.md  moon.pkg
+├── axiom.mbt              @axiom（root package）：10 個 demo 管線（import 全部 8 個 package）
+├── axiom_test.mbt         root 黑盒測試（4 個：demo 輸出契約 + U7）
+├── README.mbt.md          全庫總覽 + package 索引 + §17 可運行例子
+├── moon.pkg               root package 的依賴宣告
+├── cmd/main/main.mbt      可執行入口（moon run cmd/main · 17 段輸出）
+└── docs/
+    ├── UNIVALENCE.md      單值性：公理 → 定理 完整證明報告
+    ├── CUBICAL.md         有限立方體演算法：設計、推導與可執行驗證報告
+    ├── index.html         可視化報告（本頁）
+    └── toolchain.txt      已驗證的工具鏈版本
+
+依賴 DAG：structures ─┐            hott_core ─┬→ hott_hits ─┐
+                      ├→ hott_redefine ←───────┘             │
+hott_core ────────────┴→ univalence → cubical ─┐             │
+                              └→ hott_theorems ←┴─────────────┘
+hott_algorithms ← (全部) · root @axiom ← (8 個) · cmd/main ← (9 個)
+
+每個 README.mbt.md 的 ```mbt check``` 例子都被 moon test 真的編譯並執行（共 55 個文件測試）
+</code></pre></code></pre>
     <p style="margin-top:10px">工具鏈：<code>moon 0.1.20261012 (748b63c 2026-10-12) · moonc v0.10.15+943464bfa</code> — 已聯網驗證、本地編譯通過。</p>
     <p class="small">文獻：HoTT Book · Cubical Type Theory (Cohen-Coquand-Huber-Mörtberg) · Stering-Angiuli Normalization for Cubical · HoTT HITs (Lumsdaine-Shulman)。</p>
   </div>
 
   <div class="footer">
     <div>Axiom · HoTT 重構 · 由 MoonBit 零成本抽象驅動 · 編譯時即證明，運行時即零成本 · 相等即路徑，等價即相等</div>
-    <div style="margin-top:4px">Agent Mode @ Arena.ai · 2026-10-17 · Hong Kong · Apache-2.0 · moon 0.1.20261012 / moonc v0.10.15</div>
+    <div style="margin-top:4px">Agent Mode @ Arena.ai · 2026-10-18 · Hong Kong · Apache-2.0 · moon 0.1.20261012 / moonc v0.10.15</div>
   </div>
 </div>
 </body>

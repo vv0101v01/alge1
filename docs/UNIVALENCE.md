@@ -1,10 +1,16 @@
 # 單值性：從公理降級為定理 —— 完整證明報告
 
 > 對應 commit：`HoTT重構` 之後的本次改動
-> 程式碼：`hott_univalence_theorem.mbt`（新增）、`hott_core.mbt`、`hott_univalence.mbt`（改造）
-> 機器檢查：`univalence_theorem_test.mbt`（13 個新測試）
+> 程式碼：`univalence/hott_univalence_theorem.mbt`（新增）、`hott_core/hott_core.mbt`、`univalence/hott_univalence.mbt`（改造）
+> 機器檢查：`univalence/univalence_test.mbt`（14 個黑盒測試，原名 `univalence_theorem_test.mbt`）
+> 文件測試：`univalence/README.mbt.md`（9 個 ```mbt check``` 例子，由 `moon test` 執行）
 > 工具鏈：`moon 0.1.20261012` / `moonc v0.10.15`（與 `docs/toolchain.txt` 一致）
-> 結果：**`moon test` → Total tests: 39, passed: 39, failed: 0**（原 26 + 新 13）
+> 結果（本文寫成時，commit `0401859`）：**`moon test` → Total tests: 39, passed: 39, failed: 0**（原 26 + 新 13）
+> **package 重構後**：`univalence/` 成為獨立 package（`moon test univalence` → 22 passed：
+> 14 個黑盒測試 + 9 個 `univalence/README.mbt.md` 的 ```mbt check``` 文件測試），全庫 112 passed。
+> 路徑由 `hott_univalence_theorem.mbt` 變成 `univalence/hott_univalence_theorem.mbt`；
+> 測試檔 `univalence_theorem_test.mbt` 改名為 `univalence/univalence_test.mbt`；
+> **數學內容、證明物件、實測數據完全冇變**。
 
 ---
 
@@ -12,8 +18,8 @@
 
 | 項目 | 結果 |
 |---|---|
-| repo 裡有沒有「單值性公理」？ | **有**。全庫唯一被標為公理的就是單值性（univalence）：`README.mbt.md` §5 寫「**公理**：idToEquiv … 為等價；ua … 為其逆」，`hott_core.mbt::ua` 的註解寫「HoTT **公理**的計算內容」 |
-| 有沒有別的公理？ | 沒有被標為公理的陳述。`hott_redefine.mbt` 提到「路徑公理」（refl/sym/trans），那是類型論的推斷規則，本庫已用 `Path` 實作，不是額外假設 |
+| repo 裡有沒有「單值性公理」？ | **有**。全庫唯一被標為公理的就是單值性（univalence）：`README.mbt.md` §5 寫「**公理**：idToEquiv … 為等價；ua … 為其逆」，`hott_core/hott_core.mbt::ua` 的註解寫「HoTT **公理**的計算內容」 |
+| 有沒有別的公理？ | 沒有被標為公理的陳述。`hott_redefine/hott_redefine.mbt` 提到「路徑公理」（refl/sym/trans），那是類型論的推斷規則，本庫已用 `Path` 實作，不是額外假設 |
 | 已降級為定理？ | **是**。`ua` 不再是宣告：它由等價自身的資料**構造**（glue），公理數 = 0（`univalence_axiom_count() = 0`） |
 | 定理成立嗎？ | **成立**，三種獨立意義下（見 §3、§4、§5）：一般 cubical 定理、本庫模型內的構造性證明、`n = 0..6` 的窮盡機器驗證（n=6 做了 1,571,761 次原子比較） |
 | 附帶修好的 bug | 舊 `ua` 連自己的定律都不滿足：`ua(idEquiv) ≠ refl`（違反 uaη）、`transport (ua e) ≠ e.to`（違反 uaβ，`transport_structure` 會憑空 +10） |
@@ -22,7 +28,7 @@
 
 ## 1. 診斷：它憑什麼是「公理」
 
-舊實作（`hott_core.mbt`）：
+舊實作（`hott_core/hott_core.mbt`）：
 
 ```moonbit
 /// 單值性見證：將等價提升為類型相等（HoTT 公理的計算內容）
@@ -222,7 +228,7 @@ n=6 paths=720=720 equivs=720 …                                              ch
 | T9 | `decidable_eq` | 路徑相等可判定 + 反身完備 ⇒ 1-類型 | 引理 2 |
 | T10 | `shadow_injective` | Lehmer 影子投影單射（`S_n → [0,n!)` 雙射） | §6 |
 
-### 5.1 測試清單（`univalence_theorem_test.mbt`，13 個）
+### 5.1 測試清單（`univalence/univalence_test.mbt`，13 個）
 
 | 測試 | 內容 |
 |---|---|
@@ -249,8 +255,9 @@ n=6 paths=720=720 equivs=720 …                                              ch
 curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
 export PATH="$HOME/.moon/bin:$PATH"
 moon version --all     # moon 0.1.20261012 / moonc v0.10.15
-moon check             # 0 errors
-moon test              # Total tests: 39, passed: 39, failed: 0   （約 4.2 秒）
+moon check             # 0 errors, 113 warnings
+moon test              # Total tests: 112, passed: 112, failed: 0
+moon test univalence   # Total tests: 22（14 黑盒 + 9 個 README 的 mbt check）
 moon run cmd/main      # 印出上面的定理摘要
 ```
 
@@ -278,13 +285,13 @@ moon run cmd/main      # 印出上面的定理摘要
 | demo `hott:` 行 | `ua_code=10` | `ua_code=0` | 反映上述修正 |
 | demo `new_thms:` 行 | `sip_code=30` | `sip_code=1` | demo 的兩個 `MonoidStr` 載體名不同 ⇒ 虧損 1（可檢測，非 0 即非合法見證） |
 
-新增公開 API（約 35 項，全在 `hott_univalence_theorem.mbt`）：
+新增公開 API（約 35 項，全在 `univalence/hott_univalence_theorem.mbt`）：
 `Fin`/`fin`、`Bij`/`bij_make`/`bij_make_with_inv`/`bij_id`/`bij_apply`/`bij_inv`/`bij_compose`/`bij_eq`/`bij_is_id`/`bij_all`/`lehmer_code`、
 `UPath`/`upath_make`/`upath_refl`/`upath_sym`/`upath_trans`/`upath_eq`/`upath_transport`/`upath_transport_table`/`upath_all`/`upath_to_legacy`、
 `id_to_equiv_fin`/`ua_fin`/`upath_transport_beta`、`UnivalenceProof`/`univalence_proof`/`univalence_holds`/`is_equiv_id_to_equiv`/`pi1_universe_is_symmetric_group`/`inequivalent_types_are_unequal`/`univalence_axiom_count`/`univalence_line`/`univalence_summary`、
 `all_functions`/`funext_defect`/`funext_fin`/`happly_fin`/`funext_happly_laws`、`is_prop_fin`/`fin_map_exists`/`prop_ext_fin_exhaustive`、
 `MonoidFin`/`monoid_table_at`/`monoid_check`/`monoid_all`/`monoid_isomorphism`/`sip_monoid_fin`/`sip_transport_check`/`monoid_classes`/`monoid_partition_check`；
-`hott_core.mbt` 新增 `equiv_defect`、`ua_eta_legacy`；`hott_univalence.mbt` 新增 `homotopy_defect`、`monoid_str_defect`、`transport_via_ua`、`prop_ext_is_theorem`、`sip_is_theorem`、`ua_beta_is_theorem`、`fin_universe_hlevel`；`axiom.mbt` 新增 `univalence_theorem_demo`。
+`hott_core/hott_core.mbt` 新增 `equiv_defect`、`ua_eta_legacy`；`univalence/hott_univalence.mbt` 新增 `homotopy_defect`、`monoid_str_defect`、`transport_via_ua`、`prop_ext_is_theorem`、`sip_is_theorem`、`ua_beta_is_theorem`、`fin_universe_hlevel`；`axiom.mbt` 新增 `univalence_theorem_demo`。
 
 ---
 
@@ -296,7 +303,7 @@ moon run cmd/main      # 印出上面的定理摘要
 2. **範圍是有限宇宙實例。** 全宇宙的單值性在 cubical 類型論中是定理（§3 的文獻），
    但要在本庫機械化需要一個真正的 cubical 檢查器（區間 + Kan 填充），這超出 MoonBit 的型別系統。
    本庫做到的是：把「宣告」換成「構造 + 可判定驗證」，並讓舊 API 至少不再違反 uaη/uaβ。
-   **後續進展**：有限立方體演算法已實作（`hott_cubical.mbt`、報告 `docs/CUBICAL.md`）——
+   **後續進展**：有限立方體演算法已實作（`cubical/hott_cubical.mbt`、報告 `docs/CUBICAL.md`）——
    K1 立方體範疇 □（∂/σ、三組恆等式、計數律、生成律，dim ≤ 4）、
    K2 **Kan 填充**（在本文的 `El` 纖維上解開放盒，七條定律含 uaβ，card ≤ 5）、
    K3 **cubical NBE**（`CTerm` + 重寫 R1–R12 + 勢函數終止性）。
@@ -312,9 +319,9 @@ moon run cmd/main      # 印出上面的定理摘要
 ## 8. 後續可做（不影響本次結論）
 
 * 把 `Equiv[A,B]` 的 `left_inv_code/right_inv_code : Int` 升級為真正的同倫見證並強制驗證，讓舊 API 的 `is_equiv()` 不再恆真。
-* 用 `UPath` 取代 `hott_redefine.mbt::vect_hott_path` 的 `code: v1.dim - v2.dim`（目前 `VectHoTT` 的相等見證同樣是捏造的）。
+* 用 `UPath` 取代 `hott_redefine/hott_redefine.mbt::vect_hott_path` 的 `code: v1.dim - v2.dim`（目前 `VectHoTT` 的相等見證同樣是捏造的）。
 * 把 SIP 分類推到 `n = 4`（35 類）：需要剪枝（先固定單位元、先篩冪等元）而非枚舉 `4^16` 張表。
-* ~~做一個 cubical 檢查器（區間 + Kan 填充）~~ —— **已完成**：`hott_cubical.mbt` 的 K1（立方體範疇 □）、
+* ~~做一個 cubical 檢查器（區間 + Kan 填充）~~ —— **已完成**：`cubical/hott_cubical.mbt` 的 K1（立方體範疇 □）、
   K2（Kan 填充 = transport，含 uaβ 作為化簡結果）、K3（cubical NBE + 強正規化），報告見 `docs/CUBICAL.md`。
   仍待做的是它的高維推廣：多方向 `hcomp`、依賴路徑 `PathP`、`Glue` 型別形成子、connections（見該文 §8）。
 * 若要真正的型別層證明，把本庫的 `UPath`/`Bij` 移植到 Agda/Lean 4（cubical 或 `Equiv` + `univalence`），本文的引理 0–10 可逐條對應。
