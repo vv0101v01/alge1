@@ -3,12 +3,44 @@
 ///
 /// 零成本：所有算法以泛型 + 路徑 code 單態化，編譯時消除傳輸
 
-// ---------- 算法 H1 — Cubical 傳輸重寫（歸一化） ----------
-/// Cubical 傳輸沿路徑的重寫：transport along p 作為編譯時重寫規則
-/// 複雜度 O(n) 線性遍歷，替代傳統 O(n²) 的重寫搜索
+// ---------- 算法 H1 — Cubical 傳輸（Kan 填充） ----------
+/// Cubical 傳輸：在 cubical TT 中 `transport` **就是 Kan 填充**（解開放盒）。
+/// 誠實聲明：`Path[A]` 只帶整數 `code`、沒有計算內容，所以這裡只能實現
+/// 「code 直線族」`family(x) = x + code` 這個特例（`refl` ⇒ code = 0 ⇒ 恒等）。
+/// **真正的 Kan 填充在 `hott_cubical.mbt`（K2）**：`kan_fill_el` / `upath_transport`
+/// 沿帶 glue 的宇宙路徑 `UPath` 計算，七條定律（存在、唯一/盒條件、泛性質、
+/// 函子性、round-trip、refl、**uaβ**）在 `Fin card`（card ≤ 5）上窮盡驗證。
+/// 入口：`cubical_transport_kan`。複雜度：O(1)（glue 查表）。
 pub fn[A] cubical_transport(p : Path[A], val_code : Int) -> Int {
-  // 真實 cubical 中為 Kan 填充，此處以 code 加法模擬 O(1)
   val_code + p.code
+}
+
+/// H1 的真正版本：沿帶 glue 的宇宙路徑解開放盒（Kan 填充 = transport）
+/// 回傳 `None` 表示盒不成立（元素越界），不會假裝填得出來
+pub fn cubical_transport_kan(p : UPath, x : Int) -> Int? {
+  match kan_fill_el({ path: p, bottom: x, top: None }) {
+    Some(f) => Some(f.top)
+    None => None
+  }
+}
+
+/// H1 demo：在 `Fin 3` 上沿 3-循環 (0 1 2) 的 `ua` 路徑做 Kan 填充，`1 ↦ 2`
+pub fn cubical_kan_demo() -> String {
+  match bij_make(3, [1, 2, 0]) {
+    None => "n/a"
+    Some(b) => {
+      let a = fin("Fin3", 3)
+      match upath_make(a, a, b) {
+        None => "n/a"
+        Some(p) => {
+          match cubical_transport_kan(p, 1) {
+            None => "n/a"
+            Some(v) => v.to_string()
+          }
+        }
+      }
+    }
+  }
 }
 
 /// 批量傳輸：對 Array[A] 沿同一路徑傳輸，融合為單次映射
@@ -116,15 +148,23 @@ pub fn[A, B] transport_structure(e : Equiv[A, B], tagA : TypeTag, tagB : TypeTag
 }
 
 // ---------- 算法 H7 — 立方等式判定（Normalization by Evaluation） ----------
-/// 判定相等：將 HoTT 項歸一化為 β/η 範式，再比較範式相等（ decidable ）
-/// 基於 Sterling-Angiuli 2021 的 cubical 歸一化算法，時間 O(n log n)
+/// 誠實聲明：`Term` 只是 `(code, tag)` 的**不透明配對**，內部沒有 λ/Π/ua 等結構，
+/// 因此沒有可歸一化的東西 —— `normalize` 只能是恒等。
+/// 舊版用 `code % 1000` 伪造範式，會讓 `judgmental_eq(Term{1001}, Term{1})` 誤判為
+/// `true`（1001 ≡ 1 mod 1000），已移除。
+/// **真正的 cubical NBE 在 `hott_cubical.mbt`（K3）**：`CTerm` 項代數（元素 / 已驗證
+/// 等價 σ / refl / sym / trans / ua / transport）+ 帶良型守衛的重寫系統 R1–R12
+/// + `cnorm`（eval-then-reify，Sterling–Angiuli–Gratzer 2019 的有限版本）；
+/// 健全性、與 NBE 一致、冪等、範式為不動點、終止、判斷相等為等價關係且對模型
+/// 健全又完備 —— 全部在有限模型上窮盡驗證。入口：`judgmental_eq_ct`。
 pub(all) struct Term { code : Int; tag : String } derive(Eq, Debug)
 
+/// `Term` 無內部結構 ⇒ 範式就是它自己
 pub fn normalize(term : Term) -> Term {
-  // 簡化：範式為 code 模 1000 的正則化（模擬 NBE）
-  { code: term.code % 1000, tag: term.tag + "_nf" }
+  term
 }
 
+/// 判斷相等：範式相同（對 `Term` 即精確比對 `code` 與 `tag`）
 pub fn judgmental_eq(a : Term, b : Term) -> Bool {
   let na = normalize(a)
   let nb = normalize(b)

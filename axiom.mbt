@@ -94,13 +94,36 @@ pub fn new_theorems_demo() -> String {
 }
 
 /// HoTT 新算法演示：cubical 傳輸、截斷剪枝、合成同倫
+/// H1/H7 已誠實化：`Term` 無內部結構 ⇒ `normalize` 為恒等、`judgmental_eq` 為精確比對
+/// （舊版 `code % 1000` 會把 1001 與 1 誤判為相等，故 `eq` 由 true 變 false）；
+/// `kan_fill` 是真正的 Kan 填充結果（見 `cubical_demo`）
 pub fn hott_algorithms_demo() -> String {
   let p = refl(TypeTag("A"))
   let trans = cubical_transport(p, 99)
   let searched = truncated_exists_search([1, 2, 3, 4], fn(x) { x == 3 })
   let eq_check = judgmental_eq(Term::{ code: 1001, tag: "t" }, Term::{ code: 1, tag: "t" })
   let norm = normalize(Term::{ code: 2048, tag: "x" })
-  "hott_algo: cubical=" + trans.to_string() + " trunc_search=" + searched.to_string() + " eq=" + eq_check.to_string() + " norm_code=" + norm.code.to_string()
+  "hott_algo: cubical=" + trans.to_string() + " trunc_search=" + searched.to_string() + " eq=" + eq_check.to_string() + " norm_code=" + norm.code.to_string() + " kan_fill=" + cubical_kan_demo()
+}
+
+/// 3-循環 (0 1 2) 的 Lehmer 秩
+fn cyc3_lehmer() -> Int32 {
+  match bij_make(3, [1, 2, 0]) {
+    Some(b) => lehmer_code(b)
+    None => 0
+  }
+}
+
+/// 有限立方體演算法演示：K1 立方體範疇 □ / K2 Kan 填充 / K3 cubical NBE
+/// 每個布林值都是**窮盡計算**的結果（見 hott_cubical.mbt），公理數 0
+pub fn cubical_demo() -> String {
+  let k1 = cubical_proof(3)
+  let k2 = kan_proof(4)
+  let k3 = nbe_proof(3, 1, 6, 8)
+  // K3：transport (ua σ) 1 ⟶ σ 1 = 2（uaβ 作為重寫的計算結果）
+  let t = CTransport(CUa(CSigma(cyc3_lehmer())), CElem(1))
+  let (nf, steps) = crewrite(t, 3, 8)
+  "cubical: axioms=" + cubical_axiom_count().to_string() + " K1(dim<=3 checks=" + k1.checks.to_string() + " C1C2C3=" + (k1.coface_coface && k1.degen_degen && k1.degen_coface).to_string() + " assoc=" + k1.assoc_unit.to_string() + " count=" + k1.count_law.to_string() + " gen=" + k1.generated_by.to_string() + " euler_Q3=" + cube_euler(3).to_string() + " gray=" + gray_hamiltonian_check(3).to_string() + ") K2(card<=4 checks=" + k2.checks.to_string() + " kan=" + (k2.exists && k2.unique_iff && k2.universal && k2.functorial && k2.roundtrip && k2.refl_law && k2.ua_beta).to_string() + " fill(ua(012),1)=" + cubical_kan_demo() + ") K3(terms=" + k3.terms.to_string() + " sound=" + k3.rewrite_sound.to_string() + " nbe=" + k3.norm_sound.to_string() + " decidable=" + k3.eq_complete.to_string() + " " + cterm_show(t) + "=" + cterm_show(nf) + "/" + steps.to_string() + "步)"
 }
 
 /// 原定理的 HoTT 再定義演示

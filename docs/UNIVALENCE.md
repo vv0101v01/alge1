@@ -296,10 +296,16 @@ moon run cmd/main      # 印出上面的定理摘要
 2. **範圍是有限宇宙實例。** 全宇宙的單值性在 cubical 類型論中是定理（§3 的文獻），
    但要在本庫機械化需要一個真正的 cubical 檢查器（區間 + Kan 填充），這超出 MoonBit 的型別系統。
    本庫做到的是：把「宣告」換成「構造 + 可判定驗證」，並讓舊 API 至少不再違反 uaη/uaβ。
+   **後續進展**：有限立方體演算法已實作（`hott_cubical.mbt`、報告 `docs/CUBICAL.md`）——
+   K1 立方體範疇 □（∂/σ、三組恆等式、計數律、生成律，dim ≤ 4）、
+   K2 **Kan 填充**（在本文的 `El` 纖維上解開放盒，七條定律含 uaβ，card ≤ 5）、
+   K3 **cubical NBE**（`CTerm` + 重寫 R1–R12 + 勢函數終止性）。
+   它仍是**有限模型**上的檢查器（不是型別層的 cubical 檢查器），但 §4 的 glue 構造
+   現在有了對應的填充演算法與重寫系統，uaβ 由「布林檢查」升級為「可執行的化簡」。
 3. **複雜度。** 窮盡驗證是 `O((n!)²·n)`：`n=5` 約 4.6 萬次比較，`n=6` 約 157 萬次（整套測試約 4.2 秒）。
    `n=7`（5040）不建議放進 CI。SIP 的窮盡分類受 `n^(n²)` 張表限制，只跑到 `n = 3`（19683 張表）。
-4. **`Equiv[A,B]` 的旧 `is_equiv()` 仍然是弱檢查**（只看兩個 code）。真正的等價驗證在 `Bij`/`bij_make`。
-   若要彻底肃清，下一步是把 `Equiv` 的見證欄位換成 `Homotopy` 並強制檢查 —— 已列入 §8 待辦。
+4. **`Equiv[A,B]` 的舊 `is_equiv()` 仍然是弱檢查**（只看兩個 code）。真正的等價驗證在 `Bij`/`bij_make`。
+   若要徹底肅清，下一步是把 `Equiv` 的見證欄位換成 `Homotopy` 並強制檢查 —— 已列入 §8 待辦。
 
 ---
 
@@ -308,6 +314,9 @@ moon run cmd/main      # 印出上面的定理摘要
 * 把 `Equiv[A,B]` 的 `left_inv_code/right_inv_code : Int` 升級為真正的同倫見證並強制驗證，讓舊 API 的 `is_equiv()` 不再恆真。
 * 用 `UPath` 取代 `hott_redefine.mbt::vect_hott_path` 的 `code: v1.dim - v2.dim`（目前 `VectHoTT` 的相等見證同樣是捏造的）。
 * 把 SIP 分類推到 `n = 4`（35 類）：需要剪枝（先固定單位元、先篩冪等元）而非枚舉 `4^16` 張表。
+* ~~做一個 cubical 檢查器（區間 + Kan 填充）~~ —— **已完成**：`hott_cubical.mbt` 的 K1（立方體範疇 □）、
+  K2（Kan 填充 = transport，含 uaβ 作為化簡結果）、K3（cubical NBE + 強正規化），報告見 `docs/CUBICAL.md`。
+  仍待做的是它的高維推廣：多方向 `hcomp`、依賴路徑 `PathP`、`Glue` 型別形成子、connections（見該文 §8）。
 * 若要真正的型別層證明，把本庫的 `UPath`/`Bij` 移植到 Agda/Lean 4（cubical 或 `Equiv` + `univalence`），本文的引理 0–10 可逐條對應。
 
 ---

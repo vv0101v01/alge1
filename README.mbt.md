@@ -3,12 +3,13 @@
 > **MoonBit 最新穩定版** · `moon 0.1.20261012` · `moonc v0.10.15` — 已聯網驗證  
 > **命題**：運算留在編譯時，零成本抽象  
 > **HoTT 定理化**：以同倫類型論為統一根基，再定義所有定理與演算法  
-> **公理數 = 0**：原「單值性公理」已降級為**定理**並證明成立（`docs/UNIVALENCE.md`、`hott_univalence_theorem.mbt`）
+> **公理數 = 0**：原「單值性公理」已降級為**定理**並證明成立（`docs/UNIVALENCE.md`、`hott_univalence_theorem.mbt`）  
+> **有限立方體演算法**：立方體範疇 □ / Kan 填充 / cubical NBE 全部實作並窮盡驗證（`docs/CUBICAL.md`、`hott_cubical.mbt`）
 
 ## 目錄
 
 1. [安裝與構建](#s1)  2. [零成本保證](#s2)  3. [HoTT 核心](#s3)  4. [HITs](#s4)  5. [單值性（定理）](#s5)
-6. [範疇論 HoTT 再定義](#s6)  7. [三大函子 HoTT 化](#s7)  8. [Vectₖ HoTT 化](#s8)  9. [Topos HoTT 化](#s9)  10. [線性邏輯 HoTT 化](#s10)  11. [同倫/DAG 合成化](#s11)  12. [群胚/2-群 HoTT 化](#s12)  13. [新定理 N1-N6](#s13)  14. [新算法 H1-H7](#s14)  15. [運行演示](#s15)  16. [包結構](#s16)
+6. [範疇論 HoTT 再定義](#s6)  7. [三大函子 HoTT 化](#s7)  8. [Vectₖ HoTT 化](#s8)  9. [Topos HoTT 化](#s9)  10. [線性邏輯 HoTT 化](#s10)  11. [同倫/DAG 合成化](#s11)  12. [群胚/2-群 HoTT 化](#s12)  13. [新定理 N1-N6](#s13)  14. [新算法 H1-H7](#s14)  14b. [有限立方體演算法 K1-K3](#s14b)  15. [運行演示](#s15)  16. [包結構](#s16)
 
 ## 1. 安裝與構建 <a id="s1"></a>
 
@@ -17,8 +18,8 @@ curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
 export PATH="$HOME/.moon/bin:$PATH"
 moon version --all  # moon 0.1.20261012  moonc v0.10.15
 cd axiom
-moon check   # 0 errors, 91 warnings
-moon test    # 39 passed (26 原有 + 13 單值性定理)
+moon check   # 0 errors, 101 warnings
+moon test    # 51 passed (26 原有 + 13 單值性定理 + 12 有限立方體)
 moon run cmd/main
 moon build --target wasm,wasm-gc,js,native
 ```
@@ -183,15 +184,39 @@ crossed_to_hott(cm) : B(G,H)  2-截斷類型
 
 | 編號 | 算法 | 樸素→優化 | HoTT 原理 |
 |------|------|-----------|-----------|
-| H1 | Cubical 傳輸重寫 | O(n²) 搜索 → O(n) 線性 | `cubical_transport(p,code)` = Kan 填充 code 加法 |
+| H1 | Cubical 傳輸（Kan 填充） | O(n²) 搜索 → O(1) glue 查表 | `cubical_transport(p,code)`：`Path` 只有 code ⇒ 只能做直線族特例 `v+p.code`；**真正的 Kan 填充**是 `cubical_transport_kan` / `kan_fill_el`（見 §14b K2） |
 | H2 | HIT 商化隊列 | 顯式商化 O(n²) → O(1) amortized | 商類型 $A/R$ 的 HIT 路徑商化 |
 | H3 | 截斷剪枝搜索 | O(2ⁿ) 枚舉 → O(n) | $∥A∥₋₁$ 僅需存在性代表元 |
 | H4 | 合成 π₁ 計算 | O(n³) 單純逼近 → O(1) 整數加法 | $trans : Path→Path$ 即整數加法 |
 | H5 | HIT 記憶化 | 哈希 O(n) → 路徑等價命中 | $Path[A](x,y)$ 共享等價類 |
 | H6 | 結構傳輸 | O(n²) 重證 → O(1) code 替換 | `transport_structure along ua(e)` |
-| H7 | 立方等式判定 | 不可判定 → O(n log n) 可判定 | Sterling-Angiuli 歸一化：`judgmental_eq` 經 `normalize` 比對範式，類型構造子單射性 `pi_injective` |
+| H7 | 立方等式判定 | 不可判定 → 可判定（有限模型） | `Term` 無內部結構 ⇒ `normalize` 為**恒等**、`judgmental_eq` 為精確比對（舊版 `code % 1000` 會把 1001 與 1 誤判為相等，已移除）；**真正的 cubical NBE** 是 `cnorm` / `judgmental_eq_ct`（見 §14b K3） |
 
 **代碼**：`hott_algorithms.mbt`，零成本：`Path` code 加法、`Equiv`/`Trunc` 泛型單態化。
+**誠實化**：H1/H7 的「假 cubical」已改為誠實聲明 + 指向 `hott_cubical.mbt` 的真正演算法；
+唯一可見的行為變更是 demo 行 `eq=true → false`、`norm_code=48 → 2048`（詳見 `docs/CUBICAL.md` §6）。
+
+## 14b. 有限立方體演算法 K1-K3 <a id="s14b"></a>
+
+**代碼**：`hott_cubical.mbt`（約 1,300 行 / 60 個新 API）· **報告**：`docs/CUBICAL.md` · **測試**：`cubical_test.mbt`（12 個）
+
+| 部分 | 內容 | 驗證範圍 | 原子比較 | 結果 |
+|------|------|----------|----------|------|
+| **K1** 立方體範疇 □ | 態射 = 座標函數（`Coord`/`CubeMap`），生成元 `∂_{i,ε}`/`σ_i`/`s_i`，複合 = 代入 | dim ≤ 4 | **4,172,976** | 忠实性、C1/C2/C3、結合律/單位律、計數律、生成律、三層階層、外延=結構 全 `true` |
+| **K2** Kan 填充 | 在單值性纖維 `El` 上解開放盒 ⇒ `transport`；盒條件決定可填性 | card ≤ 5（路徑數 = card! ≤ 120） | **76,200** | 存在/唯一/泛性質/函子性/round-trip/refl/**uaβ** 全 `true` |
+| **K3** cubical NBE | `CTerm` 項代數 + 重寫系統 R1–R12（帶良型守衛）+ `cnorm`（eval-then-reify） | 7,804 個項 | **36,885** | 健全性/一致性/冪等/不動點/**強正規化**/等價關係/完備性 全 `true` |
+
+```
+計數律  |Hom_□([m],[n])| = Σ_k C(n,k)·C(m,k)·2^(n−k)      13 (m=n=2)
+三層    標準 □ ⊂ cartesian □ ⊂ 最大 □                     13 ⊂ 14 ⊂ 16
+面格    C(n,k)·2^(n−k)：Q³ = 8/12/6/1，χ(Q^n) = (2−1)^n = 1（可縮）
+Gray    g(k) = k ⊕ (k≫1) ⇒ 2^n 個頂點的 Hamiltonian 圈
+uaβ     transport(ua σ3, el 1) ⟶ transport(σ3, el 1) ⟶ el(2)      （2 步重寫）
+```
+
+**驗證抓到的真實 bug**：重寫規則 R1 `transport(refl,x) → x` 若無守衛，會把卡住的項
+`transport(refl, σ0)`（第二個參數是路徑而非元素，語義為 `None`）改寫成 `σ0`（語義為 `Some`）
+⇒ 不保語義。加上良型守衛後 `rewrite_sound` 對全部 7,385 個枚舉項成立（回歸測試 K3c）。
 
 ## 15. 運行演示 <a id="s15"></a>
 
@@ -200,7 +225,7 @@ moon run cmd/main
 # hott: refl_code=0 sym_code=0 trans_code=1 ua_code=0 funext_code=0     ← ua_code 10→0（uaη 成立）
 # hits: base=base loop_code=1 s1_rec=0 susp=North merid_code=1 trunc_path_code=1
 # new_thms: pi1_s1=true set_trunc=true sip_code=1 synth_pi=ℤ            ← sip_code 30→1（載體名不同的虧損）
-# hott_algo: cubical=99 trunc_search=true eq=true norm_code=48
+# hott_algo: cubical=99 trunc_search=true eq=false norm_code=2048 kan_fill=2   ← H7 誠實化（假陽性已修）+ H1 真 Kan 填充
 # redefine: cat_level=Grp vect_is_set=true infty=true level_up=Grp lin_consume=10
 # univalence_thm: axioms=0 n3(paths=6/6 checks=193) n4(paths=24/24 checks=2137) holds=true
 #                 pi1_S3=true ua_beta=true funext=true prop_ext=true sip_classes=7
@@ -209,6 +234,9 @@ moon run cmd/main
 # n=2 paths=2=2 equivs=2 ηεβ=true inj/surj=true grp=true tri=true checks=35 holds=true
 # n=3 paths=6=6 equivs=6 ηεβ=true inj/surj=true grp=true tri=true checks=193 holds=true
 # n=4 paths=24=24 equivs=24 ηεβ=true inj/surj=true grp=true tri=true checks=2137 holds=true
+# cubical: axioms=0 K1(dim<=3 checks=93767 C1C2C3=true assoc=true count=true gen=true euler_Q3=1 gray=true)
+#          K2(card<=4 checks=2880 kan=true fill(ua(012),1)=2)
+#          K3(terms=230 sound=true nbe=true decidable=true transport(ua(σ3),el(1))=el(2)/2步)
 ```
 
 ## 16. 包結構 <a id="s16"></a>
@@ -221,13 +249,16 @@ axiom/
 ├── hott_univalence.mbt    # funext, prop_ext, SIP, ua_beta（推論的舊 API）
 ├── hott_redefine.mbt      # HoTT 再定義：Category/Vect/Topos/Groupoid 等
 ├── hott_new_theorems.mbt  # N1-N6 新定理
-├── hott_algorithms.mbt    # H1-H7 新算法
+├── hott_cubical.mbt       # ★ 有限立方體演算法 K1-K3：□ 範疇 / Kan 填充 / cubical NBE
+├── hott_algorithms.mbt    # H1-H7 新算法（H1/H7 已誠實化並指向 hott_cubical.mbt）
 ├── category/functor/vect/topos/linear/homotopy/groupoid/algorithms.mbt  # 原结构保留
-├── axiom.mbt              # HoTT 版 demo_pipeline + 6 demo（含 univalence_theorem_demo）
+├── axiom.mbt              # HoTT 版 demo_pipeline + 7 demo（含 univalence_theorem_demo、cubical_demo）
 ├── axiom_test.mbt         # 26 測試（19+7 HoTT）
 ├── univalence_theorem_test.mbt  # 13 測試：單值性定理的可執行證明（U0-U7, C1-C5）
+├── cubical_test.mbt       # 12 測試：有限立方體演算法的可執行證明（K0-K3c, H1）
 ├── docs/index.html        # 可視化報告（本文件 + HoTT 附錄）
 ├── docs/UNIVALENCE.md     # 單值性：公理 → 定理 的完整證明報告
+├── docs/CUBICAL.md        # 有限立方體演算法：設計、推導與可執行驗證報告
 └── cmd/main/main.mbt      # HoTT 演示入口
 ```
 

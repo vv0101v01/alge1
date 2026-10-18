@@ -51,7 +51,7 @@ pre code{background:transparent;padding:0;color:inherit}
 <header>
   <div class="nav">
     <div><b>Axiom</b> <span style="opacity:.6">|</span> HoTT 重構 · 零成本 · 高維突破 <span class="badge" style="margin-left:8px">MoonBit 0.10.15 · HoTT</span></div>
-    <small>moon 0.1.20261012 · moonc v0.10.15 · 2026-10-17 · 39 tests · 0 errors</small>
+    <small>moon 0.1.20261012 · moonc v0.10.15 · 2026-10-18 · 51 tests · 0 errors</small>
   </div>
 </header>
 <div class="container">
@@ -59,15 +59,15 @@ pre code{background:transparent;padding:0;color:inherit}
     <h1>以同倫類型論為統一根基，<br/>再定義 Vect<sub>k</sub> · Topos · 群胚 · 2-群，衍生 HoTT 新定理與算法</h1>
     <p>類型即空間 · 相等即路徑 · 等價即相等 · 編譯時即證明，運行時即零成本。Path/Equiv/HIT/Trunc 全泛型單態化，內聯為 Int 加法。</p>
     <div class="grid">
-      <div class="card"><b>編譯保證</b><div>0 errors · 39 passed</div><div class="small">19 原有 + 7 HoTT + 13 單值性定理 · 公理數 0 · 0 運行時開銷</div></div>
+      <div class="card"><b>編譯保證</b><div>0 errors · 51 passed</div><div class="small">19 原有 + 7 HoTT + 13 單值性定理 + 12 有限立方體 · 公理數 0 · 0 運行時開銷</div></div>
       <div class="card"><b>HoTT 統一</b><div>(A=B) ≃ (A≃B)</div><div class="small">Univalence + HITs + Cubical</div></div>
       <div class="card"><b>新定理</b><div>N1 π₁(S¹)=ℤ · N3 Freudenthal</div><div class="small">Encode-Decode · Blakers-Massey</div></div>
-      <div class="card"><b>新算法</b><div>H1 Cubical O(n) · H3 截斷 O(n)</div><div class="small">H4 合成π₁ O(1) · 立方判定</div></div>
+      <div class="card"><b>立方體演算法</b><div>K1 □範疇 · K2 Kan填充 · K3 NBE</div><div class="small">dim≤4 · card≤5 · 7,804 項 · 全部窮盡驗證</div></div>
     </div>
   </div>
 
   <div class="card" style="margin-top:20px">
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span class="pill">HomTT 重構落地 6 文件</span><span class="pill">hott_core · hott_hits · hott_univalence · hott_univalence_theorem · hott_redefine · hott_new_theorems · hott_algorithms</span><span class="pill" style="background:#dcfce7;border-color:#86efac;color:#166534">單值性：公理 → 定理（公理數 0）</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span class="pill">HomTT 重構落地 6 文件</span><span class="pill">hott_core · hott_hits · hott_univalence · hott_univalence_theorem · hott_cubical · hott_redefine · hott_new_theorems · hott_algorithms</span><span class="pill" style="background:#dcfce7;border-color:#86efac;color:#166534">單值性：公理 → 定理（公理數 0）</span><span class="pill" style="background:#dcfce7;border-color:#86efac;color:#166534">有限立方體演算法 K1–K3（□ / Kan / NBE）</span></div>
     <div class="toc" style="margin-top:12px">
       <a href="#s0">0 零成本保證</a><a href="#s1">1 HoTT 核心</a><a href="#s2">2 HITs 高歸納</a><a href="#s3">3 單值性定理 & 推論</a><a href="#s4">4 範疇論 HoTT 化</a><a href="#s5">5 三大函子 HoTT 化</a><a href="#s6">6 Vect/Topos/線性 HoTT 化</a><a href="#s7">7 合成同倫/DAG</a><a href="#s8">8 群胚/2-群 1/2-類型</a><a href="#s9">9 新定理 N1-N6+U</a><a href="#s10">10 新算法 H1-H7</a><a href="#s11">11 全算法對比 17 項</a><a href="#s12">12 運行演示</a><a href="#s13">13 包結構</a>
     </div>
@@ -84,7 +84,7 @@ Path[A] code:Int  Equiv[A,B] to/from:Int→Int  Trunc[A] tag:Int
         <ul>
           <li><code>fn[A] refl(a:A)-&gt;Path[A]</code> 特化為 <code>refl_Int</code> 直接返回 <code>{code:0}</code></li>
           <li><code>DoubleField {}</code> 等見證 ZST，傳參後常量折疊消除</li>
-          <li><code>cubical_transport(p, v)</code> 展開為 <code>v + p.code</code> 單條 add</li>
+          <li><code>cubical_transport(p, v)</code> 展開為 <code>v + p.code</code> 單條 add（code 直線族特例；真正的 Kan 填充 <code>kan_fill_el</code> 為 O(1) glue 查表）</li>
           <li><code>compose_lolli</code> / <code>fused_chain</code> 融合為單循環</li>
         </ul>
       </div>
@@ -286,13 +286,13 @@ pub fn is_groupoid_hott(l:HLevel)->Bool { l==GroupoidLevel }</code></pre></div>
   <div class="card" style="overflow:auto">
     <table class="table">
       <tr><th>#</th><th>算法</th><th>樸素 → 優化</th><th>HoTT 原理</th><th>函數</th></tr>
-      <tr><td><b>H1</b></td><td>Cubical 傳輸重寫</td><td><span class="complex-bad">O(n²) 搜索</span> → <span class="complex-imp">O(n) 線性</span></td><td>Kan 填充 <code>code+</code></td><td><code>cubical_transport / batch</code></td></tr>
+      <tr><td><b>H1</b></td><td>Cubical 傳輸（Kan 填充）</td><td><span class="complex-bad">O(n²) 搜索</span> → <span class="complex-imp">O(1) glue 查表</span></td><td><code>Path</code> 只有 code ⇒ 僅直線族特例；真 Kan 填充見 K2</td><td><code>cubical_transport / _kan</code></td></tr>
       <tr><td><b>H2</b></td><td>HIT 商化隊列</td><td>O(n²) → <span class="complex-imp">O(1) amort.</span></td><td>商類型 <code>A/R</code> 路徑商化</td><td><code>HitQueue</code></td></tr>
       <tr><td><b>H3</b></td><td>截斷剪枝搜索</td><td><span class="complex-bad">O(2ⁿ) 枚舉</span> → <span class="complex-imp">O(n)</span></td><td><code>∥A∥₋₁</code> 僅存存在性</td><td><code>truncated_search</code></td></tr>
       <tr><td><b>H4</b></td><td>合成 π₁ 計算</td><td><span class="complex-bad">O(n³) 單純逼近</span> → <span class="complex-imp">O(1)</span></td><td><code>Path→Path</code> 即 ℤ 加法</td><td><code>synthetic_loop_add</code></td></tr>
       <tr><td><b>H5</b></td><td>HIT 記憶化</td><td>哈希 O(n) → 路徑命中</td><td><code>Path[A](x,y)</code> 共享等價類</td><td><code>PathMemo</code></td></tr>
       <tr><td><b>H6</b></td><td>結構傳輸</td><td>O(n²) 重證 → <span class="complex-imp">O(1)</span></td><td><code>transport along ua(e)</code></td><td><code>transport_structure</code></td></tr>
-      <tr><td><b>H7</b></td><td>立方等式判定</td><td>不可判定 → <span class="complex-imp">O(n log n)</span></td><td>Sterling-Angiuli 歸一化 + 單射性</td><td><code>normalize / judgmental_eq</code></td></tr>
+      <tr><td><b>H7</b></td><td>立方等式判定</td><td>不可判定 → <span class="complex-imp">可判定（有限模型）</span></td><td><code>Term</code> 無內部結構 ⇒ <code>normalize</code> 恒等；真 NBE 見 K3</td><td><code>normalize / judgmental_eq_ct</code></td></tr>
     </table>
     <div class="grid2" style="margin-top:12px">
       <div>
@@ -311,16 +311,98 @@ pub fn[A,B] transport_structure[A,B](e:Equiv[A,B], tagA,tagB, struct_code:Int)->
 }</code></pre>
       </div>
       <div>
-        <div class="formula">Cubical NBE 歸一化 pipeline (Sterling et al.):
-  Term --normalize--> Nf --compare--> Bool
-  normalize: λx.t  ⟶  LAM(code>>1) ，  judgmental_eq 經範式比對
-  可判定性來源:  無 reduction 的 NBE + 類型構造子單射性 (pi_injective)</div>
-        <pre><code>pub enum Term { Lam(Int,String); App(Int,Int); Pi(Int,Int); Var(Int) } // code 存哈希
-pub fn normalize(t:Term)->Term { match t { Lam(c,_) => Term::Lam(c>>1,"lam") ; _ => t } }
-pub fn judgmental_eq(a:Term,b:Term)->Bool { normalize(a).code == normalize(b).code }
-pub fn[A,B] pi_injective(p:Path[TypeTag])->Bool { true } // Π 單射性已由 HoTT 保證</code></pre>
-        <p class="small">H7 將類型檢查中 <code>Γ ⊢ a ≡ b : A</code> 的判定從不可判定化為 O(n log n) 範式比較，無需回溯。</p>
+        <div class="formula">H7 誠實化（舊版伪造範式，已移除）:
+  舊: normalize(t) = { code % 1000, tag + "_nf" }  ⇒  judgmental_eq(1001, 1) = true  ← 假陽性
+  新: normalize(t) = t（Term 無內部結構）          ⇒  judgmental_eq(1001, 1) = false
+  真正的 NBE: CTerm --ceval--> CValue --reify--> CTerm  （見 §10b K3）</div>
+        <pre><code>pub(all) struct Term { code : Int; tag : String } derive(Eq, Debug)
+pub fn normalize(term : Term) -> Term { term }          // 無結構 ⇒ 範式即自身
+pub fn judgmental_eq(a : Term, b : Term) -> Bool {      // 精確比對
+  let na = normalize(a); let nb = normalize(b); na == nb
+}
+pub fn pi_injective(a_code:Int,b_code:Int,a2:Int,b2:Int)->Bool{
+  if a_code != a2 || b_code != b2 { false } else { true }  // 由範式比對推出
+}</code></pre>
+        <p class="small">H7 的 <code>Term</code> 只是 <code>(code,tag)</code> 配對，沒有 λ/Π/ua 結構，因此「歸一化」只能是恒等。
+        需要真正的可判定判斷相等請用 <code>judgmental_eq_ct</code>（<code>hott_cubical.mbt</code> K3），
+        它在有限模型上被驗證為等價關係且<b>健全又完備</b>。</p>
       </div>
+    </div>
+  </div>
+
+  <h2 id="s10b">10b · 有限立方體演算法 K1–K3 <span class="kw">hott_cubical.mbt</span> <span class="kw kw2">公理數 0 · 窮盡驗證</span></h2>
+  <div class="card" style="overflow:auto">
+    <p class="small">H1/H7 的「假 cubical」被換成真正的演算法。方法與單值性定理相同：<b>每條定律都化為有限計算並窮盡驗證</b>，沒有一欄寫死 <code>true</code>。
+    完整推導見 <code>docs/CUBICAL.md</code>，測試見 <code>cubical_test.mbt</code>（12 個）。</p>
+    <table class="table">
+      <tr><th>部分</th><th>內容</th><th>驗證範圍</th><th>原子比較</th><th>結果</th></tr>
+      <tr><td><b>K1</b></td><td>有限立方體範疇 □：態射 = 座標函數，生成元 ∂<sub>i,ε</sub>/σ<sub>i</sub>/s<sub>i</sub>，複合 = 代入</td><td>dim ≤ 4（結合律 dim ≤ 2）</td><td><b>4,172,976</b></td><td>9 條定律全 <span class="complex-imp">true</span></td></tr>
+      <tr><td><b>K2</b></td><td>Kan 填充 = transport：在單值性纖維 <code>El</code> 上解開放盒，盒條件決定可填性</td><td>card ≤ 5（路徑數 = card! ≤ 120）</td><td><b>76,200</b></td><td>7 條定律全 <span class="complex-imp">true</span>（含 <b>uaβ</b>）</td></tr>
+      <tr><td><b>K3</b></td><td>cubical NBE：<code>CTerm</code> 項代數 + 重寫 R1–R12（帶良型守衛）+ <code>cnorm</code>（eval-then-reify）</td><td>7,804 個項（card ≤ 4, depth ≤ 2）</td><td><b>36,885</b></td><td>11 條定律全 <span class="complex-imp">true</span>（含<b>強正規化</b>）</td></tr>
+    </table>
+    <div class="grid2" style="margin-top:12px">
+      <div>
+        <div class="formula">K1 立方體範疇 □（本庫索引約定）
+  ∂_{i,ε} : [n] → [n+1]   在輸出位置 i 插入常數 ε
+  σ_i     : [n+1] → [n]   忘掉輸入座標 i（沿方向 i 為常數）
+  (g∘f).coords[j] = subst(g.coords[j], f.coords)     // 複合 = 代入
+  C1  ∂_{j+1,δ}∘∂_{i,ε} = ∂_{i,ε}∘∂_{j,δ}      (i ≤ j ≤ d)
+  C2  σ_i∘σ_j = σ_{j−1}∘σ_i                  (i &lt; j)
+  C3  σ_j∘∂_{i,ε} = ∂_{i,ε}∘σ_{j−1} | id | ∂_{i−1,ε}∘σ_j   (i&lt;j | i=j | i&gt;j)
+  計數律  |Hom([m],[n])| = Σ_k C(n,k)·C(m,k)·2^(n−k)
+  三層    標準 □ ⊂ cartesian □ ⊂ 最大 □    13 ⊂ 14 ⊂ 16  (m=n=2)
+  生成律  BFS 閉包(id, ∂, σ) = 標準 □      ⇒ □ 由 ∂/σ 呈現
+  面格    C(n,k)·2^(n−k)：Q³ = 8/12/6/1 ，χ(Q^n) = (2−1)^n = 1（可縮）
+  Gray    g(k) = k ⊕ (k≫1) ⇒ 2^n 頂點的 Hamiltonian 圈</div>
+        <pre><code>enum Coord { CZero; COne; CVar(Int) }
+struct CubeMap { dom : Int; cod : Int; coords : Array[Coord] }
+pub fn face_map(n:Int,i:Int,eps:Int) -> CubeMap?   // ∂_{i,ε}
+pub fn degen_map(n:Int,i:Int) -> CubeMap?          // σ_i
+pub fn cubemap_comp(g:CubeMap,f:CubeMap) -> CubeMap?
+pub fn cubemap_generated(dom:Int,cod:Int) -> Array[CubeMap]
+pub fn cubical_proof(n:Int) -> CubicalProof        // 9 欄全由計算得出</code></pre>
+      </div>
+      <div>
+        <div class="formula">K2 Kan 填充（開放盒 → 填充體）
+  ElBox{ path : UPath(glue), bottom ∈ El(lhs), top? }
+  上邊缺失 ⇒ 填充體 = glue 的消除 = transport      （存在性）
+  上邊給定 ⇒ 可填 ⟺ top = transport path bottom    （盒條件/唯一性）
+  不相容   ⇒ None（沒有填充體，不假裝填得出來）
+  uaβ : transport (ua e) x = e x  ← 填充的<b>計算結果</b>，不是假設
+  functorial : transport (q∘p) x = transport q (transport p x)
+
+K3 cubical NBE
+  CTerm = el(i) | σ_k | refl | sym | trans | ua | transport
+  ceval : CTerm → CValue?（型別/範圍不合 ⇒ None，卡住）
+  cnorm = reify ∘ ceval        （NBE：求値後讀回語法）
+  R1 transport(refl,x)→x   R4 transport(ua σ,x)→transport(σ,x)
+  R5 transport(p,x)→el(j)（Kan 填充）  R6 sym(sym p)→p   R7 trans 單位律
+  R10 sym(ua σ)→ua σ⁻¹   R11 ua σ∘ua τ→ua (τ∘σ)   R12 ua(id)→refl
+  終止性：Φ = cterm_size 每步嚴格遞減 ⇒ 強正規化（實測 ≤ 3 步）
+  例子：transport(ua(σ3), el(1)) ⟶ transport(σ3, el(1)) ⟶ el(2)  （2 步 = uaβ）</div>
+        <pre><code>struct ElBox { path : UPath; bottom : Int; top : Int? }
+pub fn kan_fill_el(box : ElBox) -> KanFill?     // None = 盒不相容
+pub fn kan_proof(card : Int) -> KanProof        // 7 欄定律
+enum CTerm { CElem(Int); CSigma(Int); CRefl; CSym(CTerm);
+             CTrans(CTerm,CTerm); CUa(CTerm); CTransport(CTerm,CTerm) }
+pub fn ceval(t:CTerm,card:Int) -> CValue?
+pub fn cnorm(t:CTerm,card:Int) -> CTerm         // NBE
+pub fn crewrite(t:CTerm,card:Int,max:Int) -> (CTerm,Int)
+pub fn judgmental_eq_ct(a:CTerm,b:CTerm,card:Int) -> Bool
+pub fn nbe_proof(card,depth,sigma_limit,max_steps:Int) -> NbeProof</code></pre>
+      </div>
+    </div>
+    <div class="card hott" style="margin-top:12px">
+      <h3>窮盡驗證抓到的真實 bug</h3>
+      <p class="small">重寫規則 <b>R1</b> <code>transport(refl, x) → x</code> 若沒有守衛，會把<b>卡住的項</b>
+      <code>transport(refl, σ0)</code>（第二個參數是路徑而非元素，<code>ceval = None</code>）改寫成 <code>σ0</code>
+      （<code>ceval = Some(VPath id)</code>）—— 語義從「無値」變「有値」，重寫不健全。
+      修法：每條規則只在 redex 於模型中<b>良型</b>時開火（<code>ceval_is_elem</code> / <code>ceval_is_path</code>）。
+      修好後 <code>rewrite_sound</code> 對全部 7,385 個枚舉項成立，且 <code>cnorm</code> 的輸出真的是不動點。
+      回歸測試：<code>cubical_test.mbt</code> K3c。</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <span class="tag">cubical_axiom_count() = 0</span><span class="tag">K1 dim≤4 · 4,172,976 checks</span><span class="tag">K2 card≤5 · uaβ = true</span><span class="tag">K3 7,804 項 · 強正規化</span><span class="tag">χ(Qⁿ) = 1</span><span class="tag">Gray Hamiltonian ✓</span>
     </div>
   </div>
 
@@ -372,7 +454,7 @@ Axiom ready — HoTT 零成本抽象已就緒
 hott: refl_code=0 sym_code=0 trans_code=1 ua_code=0 funext_code=0     ← ua_code 10→0（uaη 成立）
 hits: base=base loop_code=1 s1_rec=0 susp=North merid_code=1 trunc_path_code=1
 new_thms: pi1_s1=true set_trunc=true sip_code=1 synth_pi=ℤ            ← sip_code 30→1（結構虧損，可檢測）
-hott_algo: cubical=99 trunc_search=true eq=true norm_code=48
+hott_algo: cubical=99 trunc_search=true eq=false norm_code=2048 kan_fill=2   ← H7 誠實化 + H1 真 Kan 填充
 redefine: cat_level=Grp vect_is_set=true infty=true level_up=Grp lin_consume=10
 
 --- 單值性：公理 → 定理（零公理，窮盡驗證）---
@@ -384,11 +466,16 @@ n=2 paths=2=2 equivs=2 ηεβ=true inj/surj=true grp=true tri=true checks=35 hol
 n=3 paths=6=6 equivs=6 ηεβ=true inj/surj=true grp=true tri=true checks=193 holds=true
 n=4 paths=24=24 equivs=24 ηεβ=true inj/surj=true grp=true tri=true checks=2137 holds=true
 
+--- 有限立方體演算法（K1 立方體範疇 / K2 Kan 填充 / K3 cubical NBE）---
+cubical: axioms=0 K1(dim<=3 checks=93767 C1C2C3=true assoc=true count=true gen=true euler_Q3=1 gray=true)
+         K2(card<=4 checks=2880 kan=true fill(ua(012),1)=2)
+         K3(terms=230 sound=true nbe=true decidable=true transport(ua(σ3),el(1))=el(2)/2步)
+
 --- 整合管線 --- demo: w=[1, 2, 3, 4] folded=3 comps=1 linear=43  high_dim: low_dim=2 hocolim_cells=6 cot_euler=3
 
 === 零成本保證：所有泛型（含 Path/Equiv/HIT）在編譯時單態化，無虛表 ===</code></pre>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <span class="tag">moon check 0 errors · 91 warns</span><span class="tag">moon test 39 passed (26 + 13 單值性定理)</span><span class="tag">moon build wasm,wasm-gc,js,native ✓</span><span class="tag">moon run cmd/main ✓</span><span class="tag">HoTT 7 文件零成本</span><span class="tag">公理數 0</span>
+      <span class="tag">moon check 0 errors · 101 warns</span><span class="tag">moon test 51 passed (26 + 13 單值性 + 12 立方體)</span><span class="tag">moon build wasm,wasm-gc,js,native ✓</span><span class="tag">moon run cmd/main ✓</span><span class="tag">HoTT 7 文件零成本</span><span class="tag">公理數 0</span>
     </div>
   </div>
 
@@ -402,7 +489,8 @@ n=4 paths=24=24 equivs=24 ηεβ=true inj/surj=true grp=true tri=true checks=213
 ├── hott_univalence.mbt    ★ 推論API  funext/happly/prop_ext/SIP/ua_beta + *_is_theorem 證明入口
 ├── hott_redefine.mbt      ★ 再定義   HoTTCat/FreeHoTT/FlatHoTT/VectHoTT/InfTopos/LinearHoTT/球面/餘切/群胚
 ├── hott_new_theorems.mbt  ★ 新定理 N1-N6  π₁S¹/Freudenthal/截斷萬有/SIP/Blakers-Massey/Whitehead + synthetic_pi
-├── hott_algorithms.mbt    ★ 新算法 H1-H7 cubical/HITQueue/truncation/synthetic/PathMemo/transport/NBE 判斷
+├── hott_cubical.mbt       ★ 有限立方體演算法 K1-K3  □範疇(∂/σ/複合/計數/生成) · Kan填充(盒條件/uaβ) · cubical NBE(R1-R12/勢函數)
+├── hott_algorithms.mbt    ★ 新算法 H1-H7 Kan填充/HITQueue/truncation/synthetic/PathMemo/transport/NBE（H1·H7 已誠實化）
 ├── category.mbt            範疇/函子/自然變換/Yoneda
 ├── functor.mbt             等價/自由/平坦（被 HoTT 再定義）
 ├── vect.mbt                Vectₖ, FieldOps, 稀疏/稠密, JL 投影（HoTT 視為 Set）
@@ -411,10 +499,12 @@ n=4 paths=24=24 equivs=24 ηεβ=true inj/surj=true grp=true tri=true checks=213
 ├── homotopy.mbt            SSet, ModelCat, AnimatedRing, 餘切複形（合成化）
 ├── groupoid.mbt            群胚, 2-群, 交叉模（HoTT 1/2-類型）
 ├── algorithms.mbt          A1-A10 十大優化（與 H1-H7 互補）
-├── axiom.mbt               入口：demo_pipeline + hott_demo/hits_demo/new_theorems/hott_algorithms/redefine
+├── axiom.mbt               入口：demo_pipeline + hott_demo/hits_demo/new_theorems/hott_algorithms/redefine/univalence/cubical
 ├── axiom_test.mbt          26 黑盒定理測試（19+7 HoTT）
 ├── univalence_theorem_test.mbt  13 測試：單值性定理可執行證明（U0-U7, C1-C5）
+├── cubical_test.mbt        12 測試：有限立方體演算法可執行證明（K0-K3c, H1）
 ├── docs/UNIVALENCE.md      單值性：公理 → 定理 完整證明報告
+├── docs/CUBICAL.md         有限立方體演算法：設計、推導與可執行驗證報告
 ├── axiom_wbtest.mbt        白盒不變量測試
 ├── README.mbt.md           本文檔（HoTT 重構版）
 ├── docs/index.html         可視化報告（本頁，含 HoTT 附錄）

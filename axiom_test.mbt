@@ -182,7 +182,13 @@ test "hott: algorithms" {
   assert_eq(@axiom.truncated_exists_search([1, 2, 3], fn(x) { x == 2 }), true)
   let t1 = @axiom.Term::{ code: 1001, tag: "t" }
   let t2 = @axiom.Term::{ code: 1, tag: "t" }
-  assert_eq(@axiom.judgmental_eq(t1, t2), true)
+  // 誠實化後：`Term` 無內部結構 ⇒ `normalize` 為恒等，1001 與 1 不再被誤判為相等
+  // （舊版 `code % 1000` 會回傳 true；真正的 NBE 見 cubical_test.mbt 的 K3）
+  assert_eq(@axiom.judgmental_eq(t1, t2), false)
+  assert_eq(@axiom.judgmental_eq(t1, t1), true)
+  assert_eq(@axiom.normalize(t1), t1)
+  // H1 的真正版本：Kan 填充把 1 沿 3-循環的 glue 送到 2
+  assert_eq(@axiom.cubical_kan_demo(), "2")
 }
 
 test "hott: redefine" {
@@ -196,4 +202,9 @@ test "hott: redefine" {
   assert_eq(nt.contains("new_thms:"), true)
   let ha = @axiom.hott_algorithms_demo()
   assert_eq(ha.contains("hott_algo:"), true)
+  let cu = @axiom.cubical_demo()
+  assert_eq(cu.contains("cubical: axioms=0"), true)
+  assert_eq(cu.contains("C1C2C3=true"), true)
+  assert_eq(cu.contains("kan=true"), true)
+  assert_eq(cu.contains("sound=true"), true)
 }
